@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Direct upload to s3 with cors</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link href="/css/bootstrap.css" rel="stylesheet">
+    <link href="/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/css/docs.css" rel="stylesheet">
+    <link href="/css/3rd_party/pygments/default.css" rel="stylesheet">
+    <link href="/js/google-code-prettify/prettify.css" rel="stylesheet">
+	<link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body data-spy="scroll" data-target=".subnav" data-offset="50">
+	<div class="navbar navbar-fixed-top">
+  <div class="navbar-inner">
+	<div class="container">
+	  <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+		<span class="icon-bar"></span>
+		<span class="icon-bar"></span>
+		<span class="icon-bar"></span>
+	  </a>
+	  <a class="brand" href="http://pjambet.github.com">Another developer blog</a>
+	  <div class="nav-collapse">
+		<ul class="nav">
+		  <li class="">
+			<a href="http://pjambet.github.com"><i class="icon-home"></i> Home</a>
+		  </li>
+		  <li class="dropdown">
+			<a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="icon-comment"></i> Social <b class="caret"></b></a>
+				<ul class="dropdown-menu">
+					<li class=""><a href="http://www.twitter.com/pierre_jambet" rel="tooltip" title="Go to twitter.com/pierre_jambet" target="_blank">Twitter</a></li>
+					<li class=""><a href="http://github.com/pjambet" rel="tooltip" title="Go to github.com/pjambet" target="_blank">GitHub</a></li>
+					<li class=""><a href="http://www.linkedin.com/profile/view?id=156041350" rel="tooltip" title="Go to LinkedIn profile" target="_blank">LinkedIn</a></li>
+					<li class=""><a href="http://coderwall.com/pjambet" rel="tooltip" title="Go to coderwall/pjambet" target="_blank">Coderwall</a></li>
+					<li class="divider"></li>
+				</ul>
+			 </li>
+		<li class="dropdown">
+			<a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="icon-list"></i> Projects <b class="caret"></b></a>
+				<ul class="dropdown-menu">
+					<li class=""><a href="https://github.com/pjambet/" rel="tooltip" title="TODO" target="_blank">TODO</a></li>
+				</ul>
+			 </li>
+		</ul>
+	  </div>
+	</div>
+  </div>
+</div>
+
+	<div class="container">
+		<div class="marketing">
+		<div class="content">    
+	<script type="text/javascript">
+		/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+		var disqus_shortname = 'pjambet'; // required: replace example with your forum shortname
+		var disqus_identifier = '/blog/direct-upload-to-s3';
+		var disqus_url = 'http://pjambet.github.com/blog/direct-upload-to-s3';
+
+		/* * * DON'T EDIT BELOW THIS LINE * * */
+		(function () {
+			var s = document.createElement('script'); s.async = true;
+			s.type = 'text/javascript';
+			s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
+			(document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+		}());
+	</script>
+	
+<div class="row">	
+	<div class="span9 column">
+		<p><h1>Direct upload to s3 with cors</h1></p>	
+	</div>
+</div>		
+<div class="row">	
+	<div class="span3 column">
+		<h5><strong>September 21, 2012 <small>. Coding . <a href="http://pjambet.github.com/blog/direct-upload-to-s3#disqus_thread" data-disqus-identifier="/blog/direct-upload-to-s3">Comments</a></small></strong>
+		<br/><small>Tags:  <a href="/tags/aws" title="View posts tagged with &quot;aws&quot;"><u>aws</u></a>     <a href="/tags/javascript" title="View posts tagged with &quot;javascript&quot;"><u>javascript</u></a>     <a href="/tags/rails" title="View posts tagged with &quot;rails&quot;"><u>rails</u></a>    </small><br/><br/>
+		<a href="https://twitter.com/share" class="twitter-share-button" data-via="pjambet">Tweet</a> <g:plusone size="medium"></g:plusone></h5>
+	</div>		
+	<div class="span6 column">
+		<p class="pull-right">    </p>  
+	</div>	
+</div>
+<div class="row">
+	<div class="span9 column">
+		<hr>
+	</div>
+</div>
+
+
+    <div class="row">
+    <div class="span9 columns">
+      <h2>Preface</h2>
+      <p>Since beginning of september, Amazon added <a href="http://www.w3.org/TR/cors/">CORS</a> support to S3. As this is quite recent, there are not yet a lot of documentation and tutorial about how to set eveything up and running for your app.</p>
+      <p>Furthermore, <a href="http://blueimp.github.com/jQuery-File-Upload/">this jQuery plugin</a> is awesome, mainly for the progress bar handling, and the example <a href="https://github.com/blueimp/jQuery-File-Upload/wiki/Upload-directly-to-S3">in the wiki</a> is obsolete.</p>
+    <p>If somehow you're working with heroku you might have already faced the 30s limit on each requests. There are some alternative, such as the extension of the great <a href="https://github.com/jnicklas/carrierwave">carrier wave gem</a>, <a href="https://github.com/dwilkie/carrierwave_direct">carrierwave direct</a>. I gave it a quick look, but I found it quite crappy, as it forces you to change your carrier wave settings (removing the store_dir method, really ?) globally and it only works for a single file. So I thought it would be better to handle upload manually for big files, and rely on vanilla carrier_wave for my other uploads.</p>
+      <p>Others example were interesting but they all lacked important things, and none of them worked for me out of the box, hence this short guide. This tutorial is inspired by <a href="http://highgroove.com/articles/2012/09/11/upload-directly-to-Amazon-s3-with-support-for-cors.html">that post</a> and <a href="http://www.ioncannon.net/programming/1539/direct-browser-uploading-amazon-s3-cors-fileapi-xhr2-and-signed-puts/">that one</a>.</p>
+        <h2>Setup your bucket</h2>
+        <p>First you'll need to setup your bucket to enable CORS under certain conditions.</p>
+
+    
+<div class="highlight"><pre><code class="xml">    <span class="nt">&lt;CORSConfiguration&gt;</span>
+      <span class="nt">&lt;CORSRule&gt;</span>
+        <span class="nt">&lt;AllowedOrigin&gt;</span>*<span class="nt">&lt;/AllowedOrigin&gt;</span>
+        <span class="nt">&lt;AllowedMethod&gt;</span>GET<span class="nt">&lt;/AllowedMethod&gt;</span>
+        <span class="nt">&lt;AllowedMethod&gt;</span>POST<span class="nt">&lt;/AllowedMethod&gt;</span>
+        <span class="nt">&lt;AllowedMethod&gt;</span>PUT<span class="nt">&lt;/AllowedMethod&gt;</span>
+        <span class="nt">&lt;AllowedHeader&gt;</span>*<span class="nt">&lt;/AllowedHeader&gt;</span>
+      <span class="nt">&lt;/CORSRule&gt;</span>
+    <span class="nt">&lt;/CORSConfiguration&gt;</span>
+    
+</code></pre>
+</div>
+
+
+    <p>Of course those settings are only for development purpose, you'll probably want to restrict the Allowed Origin rule to your domain only. <a href="http://docs.amazonwebservices.com/AmazonS3/latest/dev/cors.html">Documentation</a> about those settings is quite good</p>
+
+        <h2>Setup your server</h2>
+        <p>In order to send your files to s3, you have to include a set of otions as described <a href="http://aws.amazon.com/articles/1434">in the official doc here</a> and <a href="">there</a></p>
+        <p>One solution would be to directly write the content of all those variables in the form, so it's ready to be submitted, but I believe that most of those value should not be written in the DOM. So we'll create a new route we'll use to fetch those data</p>
+    <p>This example is written with Rails, but writing the same for another framework should be really simple</p>
+    
+<div class="highlight"><pre><code class="ruby">    <span class="no">MyApp</span><span class="o">::</span><span class="no">Application</span><span class="o">.</span><span class="n">routes</span><span class="o">.</span><span class="n">draw</span> <span class="k">do</span>
+      <span class="n">resource</span> <span class="n">signed_url</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="ss">:index</span>
+    <span class="k">end</span>
+    
+</code></pre>
+</div>
+
+
+
+    <p>Now that we have our new route, let's create the controller which will send back our data to the s3 form</p>
+
+    
+<div class="highlight"><pre><code class="ruby">    <span class="no">SignedUrlsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+      <span class="k">def</span> <span class="nf">index</span>
+        <span class="n">render</span> <span class="n">json</span><span class="p">:</span> <span class="p">{</span>
+          <span class="n">policy</span><span class="p">:</span> <span class="n">s3_upload_policy_document</span><span class="p">,</span>
+          <span class="n">signature</span><span class="p">:</span> <span class="n">s3_upload_signature</span><span class="p">,</span>
+          <span class="n">key</span><span class="p">:</span> <span class="s2">&quot;uploads/</span><span class="si">#{</span><span class="no">SecureRandom</span><span class="o">.</span><span class="n">uuid</span><span class="si">}</span><span class="s2">/</span><span class="si">#{</span><span class="n">params</span><span class="o">[</span><span class="ss">:doc</span><span class="o">][</span><span class="ss">:title</span><span class="o">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+          <span class="n">success_action_redirect</span><span class="p">:</span> <span class="n">board_url</span>
+        <span class="p">}</span>
+      <span class="k">end</span>
+
+      <span class="kp">private</span>
+
+      <span class="c1"># generate the policy document that amazon is expecting.</span>
+      <span class="k">def</span> <span class="nf">s3_upload_policy_document</span>
+        <span class="no">Base64</span><span class="o">.</span><span class="n">encode64</span><span class="p">(</span>
+          <span class="p">{</span>
+            <span class="n">expiration</span><span class="p">:</span> <span class="mi">30</span><span class="o">.</span><span class="n">minutes</span><span class="o">.</span><span class="n">from_now</span><span class="o">.</span><span class="n">utc</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-%dT%H:%M:%S.000Z&#39;</span><span class="p">),</span>
+            <span class="n">conditions</span><span class="p">:</span> <span class="o">[</span>
+              <span class="p">{</span> <span class="n">bucket</span><span class="p">:</span> <span class="no">MY_BUCKET</span> <span class="p">},</span>
+              <span class="p">{</span> <span class="n">acl</span><span class="p">:</span> <span class="s1">&#39;private&#39;</span> <span class="p">},</span>
+              <span class="o">[</span><span class="s2">&quot;starts-with&quot;</span><span class="p">,</span> <span class="s2">&quot;$key&quot;</span><span class="p">,</span> <span class="s2">&quot;uploads/&quot;</span><span class="o">]</span><span class="p">,</span>
+              <span class="p">{</span> <span class="n">success_action_status</span><span class="p">:</span> <span class="s1">&#39;201&#39;</span> <span class="p">}</span>
+            <span class="o">]</span>
+          <span class="p">}</span><span class="o">.</span><span class="n">to_json</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">gsub</span><span class="p">(</span><span class="sr">/\n|\r/</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+      <span class="k">end</span>
+
+      <span class="c1"># sign our request by Base64 encoding the policy document.</span>
+      <span class="k">def</span> <span class="nf">s3_upload_signature</span>
+        <span class="no">Base64</span><span class="o">.</span><span class="n">encode64</span><span class="p">(</span>
+          <span class="no">OpenSSL</span><span class="o">::</span><span class="no">HMAC</span><span class="o">.</span><span class="n">digest</span><span class="p">(</span>
+            <span class="no">OpenSSL</span><span class="o">::</span><span class="no">Digest</span><span class="o">::</span><span class="no">Digest</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">&#39;sha1&#39;</span><span class="p">),</span>
+            <span class="no">AWS_SECRET_KEY_ID</span><span class="p">,</span>
+            <span class="n">s3_upload_policy_document</span>
+          <span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">gsub</span><span class="p">(</span><span class="sr">/\n/</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+    
+</code></pre>
+</div>
+
+
+    <p>So this is all we have to do on the server side</p>
+
+        <h2>Add the jQueryFileUpload files</h2>
+        <p>Next you'll have to have to add the jQueryFileUpload files. THe plugins ships with a lof of files, but I found a lot of them unecessary, so here is the list
+        <ul>
+        <li>vendor/jquery.ui.widget</li>
+        <li>jquery.fileupload</li>
+        </ul>
+        </p>
+
+        <h2>Setup the javascript client side</h2>
+    <p>Now let's setup jQueryFileUpload to send the correct data to s3</p>
+    <p>Based on what we did on the server, the workflow will be composed of 2 requests, first, it's going to fetch the needed data from our server, then send everything to
+
+    <p>Here is the sample form I'm using</p>
+
+    
+<div class="highlight"><pre><code class="haml">     <span class="nt">%form</span><span class="nf">#file_upload</span>(<span class="na">action=</span><span class="s">&quot;https://BUCKET.s3.amazonaws.com&quot;</span> <span class="na">method=</span><span class="s">&quot;post&quot;</span> <span class="na">enctype=</span><span class="s">&quot;multipart/form-data&quot;</span>)
+        <span class="nt">%input</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="ss">:hidden</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="ss">:key</span><span class="p">}</span>
+        <span class="nt">%input</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="ss">:hidden</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="s2">&quot;AWSAccessKeyId&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="no">AWS_ACCESS_KEY_ID</span><span class="p">}</span>
+        <span class="nt">%input</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="ss">:hidden</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="ss">:acl</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="s1">&#39;private&#39;</span><span class="p">}</span>
+        <span class="nt">%input</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="ss">:hidden</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="ss">:policy</span><span class="p">}</span>
+        <span class="nt">%input</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="ss">:hidden</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="ss">:signature</span><span class="p">}</span>
+        <span class="nt">%input</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="ss">:hidden</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="ss">:success_action_status</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="s2">&quot;201&quot;</span><span class="p">}</span>
+
+        <span class="nc">.progress.progress-striped.active</span>
+          <span class="nc">.bar</span>
+        <span class="nc">.file-upload.file-wrapper</span>
+          <span class="nt">%legend</span>
+            <span class="nt">%span</span><span class="nc">.fileinput-button</span> Track
+          <span class="nc">.custom-file-input</span>
+            <span class="nt">%input</span><span class="nc">.fake-input</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="s1">&#39;text&#39;</span><span class="p">}</span>
+            <span class="nt">%button</span> Choissisez un fichier
+            <span class="nt">%input</span><span class="nf">#track-file</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="ss">:file</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="ss">:file</span><span class="p">}</span>
+
+    
+</code></pre>
+</div>
+
+
+
+    
+<div class="highlight"><pre><code class="javascript"><span class="nx">$</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+
+  <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#file-input&#39;</span><span class="p">).</span><span class="nx">each</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+
+    <span class="kd">var</span> <span class="nx">form</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">).</span><span class="nx">parents</span><span class="p">(</span><span class="s1">&#39;form&#39;</span><span class="p">)</span>
+
+    <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">).</span><span class="nx">fileupload</span><span class="p">({</span>
+      <span class="nx">url</span><span class="o">:</span> <span class="s1">&#39;https://BUCKET.s3.amazonaws.com/&#39;</span><span class="p">,</span>
+      <span class="nx">type</span><span class="o">:</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span>
+      <span class="nx">autoUpload</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+      <span class="nx">dataType</span><span class="o">:</span> <span class="s1">&#39;xml&#39;</span><span class="p">,</span> <span class="c1">// This is really important as s3 gives us back the url of the file in a XML document</span>
+      <span class="nx">add</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">event</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">$</span><span class="p">.</span><span class="nx">ajax</span><span class="p">({</span>
+          <span class="nx">url</span><span class="o">:</span> <span class="s2">&quot;/signed_urls&quot;</span><span class="p">,</span>
+          <span class="nx">type</span><span class="o">:</span> <span class="s1">&#39;GET&#39;</span><span class="p">,</span>
+          <span class="nx">dataType</span><span class="o">:</span> <span class="s1">&#39;json&#39;</span><span class="p">,</span>
+          <span class="nx">data</span><span class="o">:</span> <span class="p">{</span><span class="nx">doc</span><span class="o">:</span> <span class="p">{</span><span class="nx">title</span><span class="o">:</span> <span class="nx">data</span><span class="p">.</span><span class="nx">files</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">name</span><span class="p">}},</span>
+          <span class="nx">async</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+          <span class="nx">success</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">retdata</span><span class="p">)</span> <span class="p">{</span>
+            <span class="c1">// after we created our document in rails, it is going to send back JSON of they key,</span>
+            <span class="c1">// policy, and signature.  We will put these into our form before it gets submitted to amazon.</span>
+            <span class="nx">form</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="s1">&#39;input[name=key]&#39;</span><span class="p">).</span><span class="nx">val</span><span class="p">(</span><span class="nx">retdata</span><span class="p">.</span><span class="nx">key</span><span class="p">)</span>
+            <span class="nx">form</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="s1">&#39;input[name=policy]&#39;</span><span class="p">).</span><span class="nx">val</span><span class="p">(</span><span class="nx">retdata</span><span class="p">.</span><span class="nx">policy</span><span class="p">)</span>
+            <span class="nx">form</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="s1">&#39;input[name=signature]&#39;</span><span class="p">).</span><span class="nx">val</span><span class="p">(</span><span class="nx">retdata</span><span class="p">.</span><span class="nx">signature</span><span class="p">)</span>
+          <span class="p">}</span>
+
+        <span class="p">})</span>
+
+        <span class="nx">data</span><span class="p">.</span><span class="nx">submit</span><span class="p">();</span>
+      <span class="p">},</span>
+      <span class="nx">send</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.progress&#39;</span><span class="p">).</span><span class="nx">fadeIn</span><span class="p">();</span>
+      <span class="p">},</span>
+      <span class="nx">progress</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">,</span> <span class="nx">data</span><span class="p">){</span>
+        <span class="kd">var</span> <span class="nx">percent</span> <span class="o">=</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">round</span><span class="p">((</span><span class="nx">e</span><span class="p">.</span><span class="nx">loaded</span> <span class="o">/</span> <span class="nx">e</span><span class="p">.</span><span class="nx">total</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.bar&#39;</span><span class="p">).</span><span class="nx">css</span><span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="nx">percent</span> <span class="o">+</span> <span class="s1">&#39;%&#39;</span><span class="p">)</span>
+      <span class="p">},</span>
+      <span class="nx">fail</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;fail&#39;</span><span class="p">)</span>
+      <span class="p">},</span>
+      <span class="nx">success</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">url</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="nx">data</span><span class="p">).</span><span class="nx">find</span><span class="p">(</span><span class="s1">&#39;Location&#39;</span><span class="p">).</span><span class="nx">text</span><span class="p">()</span>
+
+        <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#track_track_url&#39;</span><span class="p">).</span><span class="nx">val</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span>
+        <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;input[type=submit]&#39;</span><span class="p">).</span><span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;disabled&#39;</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span>
+      <span class="p">},</span>
+      <span class="nx">done</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">event</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+
+        <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#track-file&#39;</span><span class="p">).</span><span class="nx">siblings</span><span class="p">(</span><span class="s1">&#39;.fake-input&#39;</span><span class="p">).</span><span class="nx">val</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">files</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">name</span><span class="p">)</span>
+        <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.progress&#39;</span><span class="p">).</span><span class="nx">fadeOut</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+          <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.bar&#39;</span><span class="p">).</span><span class="nx">css</span><span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">})</span>
+      <span class="p">},</span>
+    <span class="p">})</span>
+  <span class="p">})</span>
+<span class="p">})</span>
+
+
+    
+</code></pre>
+</div>
+
+
+    <p>So quick explanation about what's going on here</p>
+    <p>In my example, this form sits next to a 'real' rails form, so once the upload is done I fill the 'real' field so my object is correctly created with the good url without having to handle extra things.</p>
+
+    <h2>Live example</h2>
+  <p>I'll set up a live example running on heroku, on which you'll be able to upload files in more than 30s coming soon </p>
+
+
+    </div>
+</div>
+
+
+
+
+<div class="row">
+    <div class="span9 column">
+            <p class="pull-right">    </p>
+    </div>
+</div>
+
+
+
+
+<div class="row">
+    <div class="span9 columns">
+        <h2>Comments Section</h2>
+        <p>Feel free to comment on the post but keep it clean and on topic.</p>
+        <div id="disqus_thread"></div>
+        <script type="text/javascript">
+            /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+            var disqus_shortname = 'pjambet'; // required: replace example with your forum shortname
+            var disqus_identifier = '/blog/direct-upload-to-s3';
+            var disqus_url = 'http://pjambet.github.com/blog/direct-upload-to-s3';
+
+            /* * * DON'T EDIT BELOW THIS LINE * * */
+            (function() {
+                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        <a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+    </div>
+</div>
+
+
+
+
+<!-- Twitter -->
+
+
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+
+
+
+<!-- Google + -->
+
+
+<script type="text/javascript">
+  (function() {
+    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+    po.src = 'https://apis.google.com/js/plusone.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+  })();
+</script>
+
+		
+</div>
+    
+
+		</div>
+	 </div>
+	<footer class="footer">
+  <div class="container">
+	<p class="pull-right">  |  <a href="#">Back to top</a>  |   </p>
+	<p>Page last generated on September 24, 2012</p>
+	<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+  </div>
+</footer>
+
+    <script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
+    <script src="/js/jquery.js"></script>
+    <script src="/js/google-code-prettify/prettify.js"></script>
+    <script src="/js/bootstrap-transition.js"></script>
+    <script src="/js/bootstrap-alert.js"></script>
+    <script src="/js/bootstrap-modal.js"></script>
+    <script src="/js/bootstrap-dropdown.js"></script>
+    <script src="/js/bootstrap-scrollspy.js"></script>
+    <script src="/js/bootstrap-tab.js"></script>
+    <script src="/js/bootstrap-tooltip.js"></script>
+    <script src="/js/bootstrap-popover.js"></script>
+    <script src="/js/bootstrap-button.js"></script>
+    <script src="/js/bootstrap-collapse.js"></script>
+    <script src="/js/bootstrap-carousel.js"></script>
+    <script src="/js/bootstrap-typeahead.js"></script>
+    <script src="/js/application.js"></script>
+	<script src="/js/custom.js" type="text/javascript"></script>
+
+	<script type="text/javascript">
+		/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+		var disqus_shortname = 'pjambet'; // required: replace example with your forum shortname
+
+		/* * * DON'T EDIT BELOW THIS LINE * * */
+		(function () {
+			var s = document.createElement('script'); s.async = true;
+			s.type = 'text/javascript';
+			s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
+			(document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+		}());
+	</script>
+
+	<!-- Google Analytics -->
+	<script type="text/javascript">
+
+	  var _gaq = _gaq || [];
+	  _gaq.push(['_setAccount', 'UA-29830549-1']);
+	  _gaq.push(['_trackPageview']);
+
+	  (function() {
+		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	  })();
+
+	</script>
+  </body>
+</html>
