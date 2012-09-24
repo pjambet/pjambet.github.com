@@ -93,10 +93,10 @@
     <div class="row">
     <div class="span9 columns">
       <h2>Preface</h2>
-      <p>Since beginning of september, Amazon added <a href="http://www.w3.org/TR/cors/">CORS</a> support to S3. As this is quite recent, there are not yet a lot of documentation and tutorial about how to set eveything up and running for your app.</p>
-      <p>Furthermore, <a href="http://blueimp.github.com/jQuery-File-Upload/">this jQuery plugin</a> is awesome, mainly for the progress bar handling, and the example <a href="https://github.com/blueimp/jQuery-File-Upload/wiki/Upload-directly-to-S3">in the wiki</a> is obsolete.</p>
-    <p>If somehow you're working with heroku you might have already faced the 30s limit on each requests. There are some alternative, such as the extension of the great <a href="https://github.com/jnicklas/carrierwave">carrier wave gem</a>, <a href="https://github.com/dwilkie/carrierwave_direct">carrierwave direct</a>. I gave it a quick look, but I found it quite crappy, as it forces you to change your carrier wave settings (removing the store_dir method, really ?) globally and it only works for a single file. So I thought it would be better to handle upload manually for big files, and rely on vanilla carrier_wave for my other uploads.</p>
-      <p>Others example were interesting but they all lacked important things, and none of them worked for me out of the box, hence this short guide. This tutorial is inspired by <a href="http://highgroove.com/articles/2012/09/11/upload-directly-to-Amazon-s3-with-support-for-cors.html">that post</a> and <a href="http://www.ioncannon.net/programming/1539/direct-browser-uploading-amazon-s3-cors-fileapi-xhr2-and-signed-puts/">that one</a>.</p>
+      <p>Since beginning of september, Amazon added <a href="http://www.w3.org/TR/cors/">CORS</a> support to S3. As this is quite recent, there are not yet a lot of documentation and tutorials about how to set eveything up and running for your app.</p>
+      <p>Furthermore, <a href="http://blueimp.github.com/jQuery-File-Upload/">this jQuery plugin</a> is awesome, mainly for the progress bar handling, but sadly the example <a href="https://github.com/blueimp/jQuery-File-Upload/wiki/Upload-directly-to-S3">in the wiki</a> is obsolete.</p>
+    <p>If somehow you're working with heroku you might have already faced the 30s limit on each requests. There are some alternatives, such as the extension of the great <a href="https://github.com/jnicklas/carrierwave">carrier wave gem</a>, <a href="https://github.com/dwilkie/carrierwave_direct">carrierwave direct</a>. I gave it a quick look, but I found it quite crappy, as it forces you to change your carrier wave settings (removing the store_dir method, really ?) and it only works for a single file. So I thought it would be better to handle upload manually for big files, and rely on vanilla carrier_wave for my other small uploads.</p>
+      <p>I found other interesting examples but they all lacked important things, and none of them worked out of the box, hence this short guide. This tutorial is inspired by <a href="http://highgroove.com/articles/2012/09/11/upload-directly-to-Amazon-s3-with-support-for-cors.html">that post</a> and <a href="http://www.ioncannon.net/programming/1539/direct-browser-uploading-amazon-s3-cors-fileapi-xhr2-and-signed-puts/">that one</a>.</p>
         <h2>Setup your bucket</h2>
         <p>First you'll need to setup your bucket to enable CORS under certain conditions.</p>
 
@@ -115,11 +115,11 @@
 </div>
 
 
-    <p>Of course those settings are only for development purpose, you'll probably want to restrict the Allowed Origin rule to your domain only. <a href="http://docs.amazonwebservices.com/AmazonS3/latest/dev/cors.html">Documentation</a> about those settings is quite good</p>
+    <p>Of course those settings are only for development purpose, you'll probably want to restrict the Allowed Origin rule to your domain only. <a href="http://docs.amazonwebservices.com/AmazonS3/latest/dev/cors.html">Documentation</a> about those settings is quite good.</p>
 
         <h2>Setup your server</h2>
-        <p>In order to send your files to s3, you have to include a set of otions as described <a href="http://aws.amazon.com/articles/1434">in the official doc here</a> and <a href="">there</a></p>
-        <p>One solution would be to directly write the content of all those variables in the form, so it's ready to be submitted, but I believe that most of those value should not be written in the DOM. So we'll create a new route we'll use to fetch those data</p>
+        <p>In order to send your files to s3, you have to include a set of options as described <a href="http://aws.amazon.com/articles/1434">in the official doc here</a> and <a href="">there</a></p>
+        <p>One solution would be to directly write the content of all those variables in the form, so it's ready to be submitted, but I believe that most of those value should not be written in the DOM. So we'll create a new route we'll use to fetch those data.</p>
     <p>This example is written with Rails, but writing the same for another framework should be really simple</p>
     
 <div class="highlight"><pre><code class="ruby">    <span class="no">MyApp</span><span class="o">::</span><span class="no">Application</span><span class="o">.</span><span class="n">routes</span><span class="o">.</span><span class="n">draw</span> <span class="k">do</span>
@@ -153,7 +153,7 @@
             <span class="n">expiration</span><span class="p">:</span> <span class="mi">30</span><span class="o">.</span><span class="n">minutes</span><span class="o">.</span><span class="n">from_now</span><span class="o">.</span><span class="n">utc</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-%dT%H:%M:%S.000Z&#39;</span><span class="p">),</span>
             <span class="n">conditions</span><span class="p">:</span> <span class="o">[</span>
               <span class="p">{</span> <span class="n">bucket</span><span class="p">:</span> <span class="no">MY_BUCKET</span> <span class="p">},</span>
-              <span class="p">{</span> <span class="n">acl</span><span class="p">:</span> <span class="s1">&#39;private&#39;</span> <span class="p">},</span>
+              <span class="p">{</span> <span class="n">acl</span><span class="p">:</span> <span class="s1">&#39;public-read&#39;</span> <span class="p">},</span>
               <span class="o">[</span><span class="s2">&quot;starts-with&quot;</span><span class="p">,</span> <span class="s2">&quot;$key&quot;</span><span class="p">,</span> <span class="s2">&quot;uploads/&quot;</span><span class="o">]</span><span class="p">,</span>
               <span class="p">{</span> <span class="n">success_action_status</span><span class="p">:</span> <span class="s1">&#39;201&#39;</span> <span class="p">}</span>
             <span class="o">]</span>
@@ -177,41 +177,38 @@
 </div>
 
 
-    <p>So this is all we have to do on the server side</p>
+    <p>The policy and signature method are stolen from the linked blog posts above with one exception, I had to include the "starts-width" constraint, otherwise s3 was yelling 403 to me.</p>
+    <p>Everything else is quite straight forward, there's just a small detail to consider if you set the acl to 'private', but more on that later.</p>
+    <p>One last detail, the key value is actually the path of your file on your bucket, so set it to whatever you want but be sure it matches the constraint you set in the policy. Here we're using <code>params[:doc][:file]</code> to read the name of the file we're about to upload. We'll see more about that when setting the javascript.</p>
+    <p>That's basically everything we have to do on the server side</p>
 
         <h2>Add the jQueryFileUpload files</h2>
-        <p>Next you'll have to have to add the jQueryFileUpload files. THe plugins ships with a lof of files, but I found a lot of them unecessary, so here is the list
+        <p>Next you'll have to add the <a href="http://blueimp.github.com/jQuery-File-Upload/">jQueryFileUpload</a> files. The plugins ships with a lof of files, but I found most of them useless, so here is the list
         <ul>
-        <li>vendor/jquery.ui.widget</li>
-        <li>jquery.fileupload</li>
+      <li><code>vendor/jquery.ui.widget</code></li>
+      <li><code>jquery.fileupload</code></li>
         </ul>
         </p>
 
         <h2>Setup the javascript client side</h2>
     <p>Now let's setup jQueryFileUpload to send the correct data to s3</p>
-    <p>Based on what we did on the server, the workflow will be composed of 2 requests, first, it's going to fetch the needed data from our server, then send everything to
+    <p>Based on what we did on the server, the workflow will be composed of 2 requests, first, it's going to fetch the needed data from our server, then send everything to s3.</p>
 
-    <p>Here is the sample form I'm using</p>
+    <p>Here is the form I'm using, the order of parameter is important.</p>
 
     
-<div class="highlight"><pre><code class="haml">     <span class="nt">%form</span><span class="nf">#file_upload</span>(<span class="na">action=</span><span class="s">&quot;https://BUCKET.s3.amazonaws.com&quot;</span> <span class="na">method=</span><span class="s">&quot;post&quot;</span> <span class="na">enctype=</span><span class="s">&quot;multipart/form-data&quot;</span>)
+<div class="highlight"><pre><code class="haml">     <span class="nt">%form</span>(<span class="na">action=</span><span class="s">&quot;https://BUCKET.s3.amazonaws.com&quot;</span> <span class="na">method=</span><span class="s">&quot;post&quot;</span> <span class="na">enctype=</span><span class="s">&quot;multipart/form-data&quot;</span>)
         <span class="nt">%input</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="ss">:hidden</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="ss">:key</span><span class="p">}</span>
         <span class="nt">%input</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="ss">:hidden</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="s2">&quot;AWSAccessKeyId&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="no">AWS_ACCESS_KEY_ID</span><span class="p">}</span>
-        <span class="nt">%input</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="ss">:hidden</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="ss">:acl</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="s1">&#39;private&#39;</span><span class="p">}</span>
+        <span class="nt">%input</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="ss">:hidden</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="ss">:acl</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="s1">&#39;public-read&#39;</span><span class="p">}</span>
         <span class="nt">%input</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="ss">:hidden</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="ss">:policy</span><span class="p">}</span>
         <span class="nt">%input</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="ss">:hidden</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="ss">:signature</span><span class="p">}</span>
         <span class="nt">%input</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="ss">:hidden</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="ss">:success_action_status</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="s2">&quot;201&quot;</span><span class="p">}</span>
 
+        <span class="nt">%input</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="ss">:file</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="ss">:file</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="p">{</span> <span class="ss">:&#39;direct-upload&#39;</span> <span class="o">=&gt;</span> <span class="kp">true</span> <span class="p">}</span> }
+        <span class="p">-</span> <span class="c1"># You can recognize some bootstrap markup here :)</span>
         <span class="nc">.progress.progress-striped.active</span>
           <span class="nc">.bar</span>
-        <span class="nc">.file-upload.file-wrapper</span>
-          <span class="nt">%legend</span>
-            <span class="nt">%span</span><span class="nc">.fileinput-button</span> Track
-          <span class="nc">.custom-file-input</span>
-            <span class="nt">%input</span><span class="nc">.fake-input</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="s1">&#39;text&#39;</span><span class="p">}</span>
-            <span class="nt">%button</span> Choissisez un fichier
-            <span class="nt">%input</span><span class="nf">#track-file</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="ss">:file</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="ss">:file</span><span class="p">}</span>
-
     
 </code></pre>
 </div>
@@ -221,7 +218,7 @@
     
 <div class="highlight"><pre><code class="javascript"><span class="nx">$</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
 
-  <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#file-input&#39;</span><span class="p">).</span><span class="nx">each</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+  <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;[data-direct-upload]&#39;</span><span class="p">).</span><span class="nx">each</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
 
     <span class="kd">var</span> <span class="nx">form</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">).</span><span class="nx">parents</span><span class="p">(</span><span class="s1">&#39;form&#39;</span><span class="p">)</span>
 
@@ -235,24 +232,24 @@
           <span class="nx">url</span><span class="o">:</span> <span class="s2">&quot;/signed_urls&quot;</span><span class="p">,</span>
           <span class="nx">type</span><span class="o">:</span> <span class="s1">&#39;GET&#39;</span><span class="p">,</span>
           <span class="nx">dataType</span><span class="o">:</span> <span class="s1">&#39;json&#39;</span><span class="p">,</span>
-          <span class="nx">data</span><span class="o">:</span> <span class="p">{</span><span class="nx">doc</span><span class="o">:</span> <span class="p">{</span><span class="nx">title</span><span class="o">:</span> <span class="nx">data</span><span class="p">.</span><span class="nx">files</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">name</span><span class="p">}},</span>
+          <span class="nx">data</span><span class="o">:</span> <span class="p">{</span><span class="nx">doc</span><span class="o">:</span> <span class="p">{</span><span class="nx">title</span><span class="o">:</span> <span class="nx">data</span><span class="p">.</span><span class="nx">files</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">name</span><span class="p">}},</span> <span class="c1">// send the file name to the server so it can generate the key param</span>
           <span class="nx">async</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
-          <span class="nx">success</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">retdata</span><span class="p">)</span> <span class="p">{</span>
-            <span class="c1">// after we created our document in rails, it is going to send back JSON of they key,</span>
-            <span class="c1">// policy, and signature.  We will put these into our form before it gets submitted to amazon.</span>
-            <span class="nx">form</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="s1">&#39;input[name=key]&#39;</span><span class="p">).</span><span class="nx">val</span><span class="p">(</span><span class="nx">retdata</span><span class="p">.</span><span class="nx">key</span><span class="p">)</span>
-            <span class="nx">form</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="s1">&#39;input[name=policy]&#39;</span><span class="p">).</span><span class="nx">val</span><span class="p">(</span><span class="nx">retdata</span><span class="p">.</span><span class="nx">policy</span><span class="p">)</span>
-            <span class="nx">form</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="s1">&#39;input[name=signature]&#39;</span><span class="p">).</span><span class="nx">val</span><span class="p">(</span><span class="nx">retdata</span><span class="p">.</span><span class="nx">signature</span><span class="p">)</span>
+          <span class="nx">success</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+            <span class="c1">// Now that we have our data, we update the form so it contains all</span>
+            <span class="c1">// the needed data to sign the request</span>
+            <span class="nx">form</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="s1">&#39;input[name=key]&#39;</span><span class="p">).</span><span class="nx">val</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">key</span><span class="p">)</span>
+            <span class="nx">form</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="s1">&#39;input[name=policy]&#39;</span><span class="p">).</span><span class="nx">val</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">policy</span><span class="p">)</span>
+            <span class="nx">form</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="s1">&#39;input[name=signature]&#39;</span><span class="p">).</span><span class="nx">val</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">signature</span><span class="p">)</span>
           <span class="p">}</span>
-
         <span class="p">})</span>
-
         <span class="nx">data</span><span class="p">.</span><span class="nx">submit</span><span class="p">();</span>
       <span class="p">},</span>
       <span class="nx">send</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
         <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.progress&#39;</span><span class="p">).</span><span class="nx">fadeIn</span><span class="p">();</span>
       <span class="p">},</span>
       <span class="nx">progress</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">,</span> <span class="nx">data</span><span class="p">){</span>
+        <span class="c1">// This is what makes everything really cool, thanks to that callback</span>
+        <span class="c1">// you can now update the progress bar based on the upload progress</span>
         <span class="kd">var</span> <span class="nx">percent</span> <span class="o">=</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">round</span><span class="p">((</span><span class="nx">e</span><span class="p">.</span><span class="nx">loaded</span> <span class="o">/</span> <span class="nx">e</span><span class="p">.</span><span class="nx">total</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
         <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.bar&#39;</span><span class="p">).</span><span class="nx">css</span><span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="nx">percent</span> <span class="o">+</span> <span class="s1">&#39;%&#39;</span><span class="p">)</span>
       <span class="p">},</span>
@@ -260,14 +257,12 @@
         <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;fail&#39;</span><span class="p">)</span>
       <span class="p">},</span>
       <span class="nx">success</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+        <span class="c1">// Here we get the file url on s3 in an xml doc</span>
         <span class="kd">var</span> <span class="nx">url</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="nx">data</span><span class="p">).</span><span class="nx">find</span><span class="p">(</span><span class="s1">&#39;Location&#39;</span><span class="p">).</span><span class="nx">text</span><span class="p">()</span>
 
-        <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#track_track_url&#39;</span><span class="p">).</span><span class="nx">val</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span>
-        <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;input[type=submit]&#39;</span><span class="p">).</span><span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;disabled&#39;</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span>
+        <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#real_file_url&#39;</span><span class="p">).</span><span class="nx">val</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span> <span class="c1">// Update the real input in the other form</span>
       <span class="p">},</span>
       <span class="nx">done</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">event</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
-
-        <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#track-file&#39;</span><span class="p">).</span><span class="nx">siblings</span><span class="p">(</span><span class="s1">&#39;.fake-input&#39;</span><span class="p">).</span><span class="nx">val</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">files</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">name</span><span class="p">)</span>
         <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.progress&#39;</span><span class="p">).</span><span class="nx">fadeOut</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
           <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.bar&#39;</span><span class="p">).</span><span class="nx">css</span><span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="p">})</span>
@@ -275,18 +270,44 @@
     <span class="p">})</span>
   <span class="p">})</span>
 <span class="p">})</span>
-
-
     
 </code></pre>
 </div>
 
 
-    <p>So quick explanation about what's going on here</p>
-    <p>In my example, this form sits next to a 'real' rails form, so once the upload is done I fill the 'real' field so my object is correctly created with the good url without having to handle extra things.</p>
 
+    <p>So quick explanation about what's going on here : </p>
+    <p>The <code>add</code> callback allows us to fetch the missing data before the upload. Once we have the data, we simply insert them in the form</p>
+    <p>The <code>send</code> and <code>done</code> callbacks are only used for UX purpose, they show and hide the progress bar when needed. The real magic is the <code>progress</code> callback as it gives you the current progress of the upload in the event argument.</p>
+    <p>In my example, this form sits next to a 'real' rails form which is used to save an object which has amongst its attributes a file_url, linked to the "big file" we just uploaded. So once the upload is done I fill the 'real' field so my object is correctly created with the good url without having to handle extra things. After submitting the real form my object is saved with the URL of the file uploaded on S3.</p>
+    <p>If you're uploading public files, you're good to go, everything's perfect. But if you're uploading private file (this is set with the acl params), you still have a last thing to handle.</p>
+    <p>Indeed the url itself is not enough, if you try accessing it, you'll face some ugly xml <a href="https://s3-eu-west-1.amazonaws.com/lpdc/glyphicons_003_user.png">like that</a>.
+    The solution I used was to use the <a href="http://amazon.rubyforge.org/">aws gem</a> which provides a great method : <a href="http://amazon.rubyforge.org/doc/classes/AWS/S3/S3Object.html">AWS::S3Object#url_for</a>. With that method, you can get an authorized url for the desired duration with your bucket name and the key (the path of your file in the bucket) of your file</p>
+    <p>So my custom url accessor looked something like this : </p>
+
+    
+<div class="highlight"><pre><code class="ruby">  <span class="k">def</span> <span class="nf">url</span>
+    <span class="n">parent_url</span> <span class="o">=</span> <span class="k">super</span>
+    <span class="c1"># If the url is nil, there&#39;s no need to look in the bucket for it</span>
+    <span class="k">return</span> <span class="kp">nil</span> <span class="k">if</span> <span class="n">parent_url</span><span class="o">.</span><span class="n">nil?</span>
+
+    <span class="c1"># This will give you the last part of the URL, the &#39;key&#39; params you need</span>
+    <span class="c1"># but it&#39;s URL encoded, so you&#39;ll need to decode it</span>
+    <span class="n">object_key</span> <span class="o">=</span> <span class="n">parent_url</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sr">/\//</span><span class="p">)</span><span class="o">.</span><span class="n">last</span>
+    <span class="no">AWS</span><span class="o">::</span><span class="no">S3</span><span class="o">::</span><span class="no">S3Object</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span>
+      <span class="no">CGI</span><span class="o">::</span><span class="n">unescape</span><span class="p">(</span><span class="n">object_key</span><span class="p">),</span>
+      <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;S3_BUCKET&#39;</span><span class="o">]</span><span class="p">,</span>
+      <span class="n">use_ssl</span><span class="p">:</span> <span class="kp">true</span><span class="p">)</span>
+  <span class="k">end</span>
+    
+</code></pre>
+</div>
+
+
+    <p>This involves some weird handling with the <code>CGI::unescape</code>, and there's probably a better way to achieve this, but this is one way to do it, and it works fine.</p>
     <h2>Live example</h2>
   <p>I'll set up a live example running on heroku, on which you'll be able to upload files in more than 30s coming soon </p>
+  <img src="http://www.gifsanimes.net/wp-content/gallery/constructions/Cons.gif" />
 
 
     </div>
