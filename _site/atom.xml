@@ -4,7 +4,7 @@
  <title>Eric Jones</title>
  <link href="http://pjambet.github.com/atom.xml" rel="self"/>
  <link href="http://pjambet.github.com/"/>
- <updated>2012-09-25T00:08:30+02:00</updated>
+ <updated>2012-09-25T00:08:44+02:00</updated>
  <id>http://pjambet.github.com</id>
  <author>
    <name>Eric Jones</name>
@@ -258,7 +258,7 @@
         &lt;div id=&quot;disqus_thread&quot;&gt;&lt;/div&gt;
         &lt;script type=&quot;text/javascript&quot;&gt;
             /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
-            var disqus_shortname = 'pierre_jambet'; // required: replace example with your forum shortname
+            var disqus_shortname = 'githubpagepjambet'; // required: replace example with your forum shortname
             var disqus_identifier = '/blog/direct-upload-to-s3';
             var disqus_url = 'http://pjambet.github.com/blog/direct-upload-to-s3';
 
