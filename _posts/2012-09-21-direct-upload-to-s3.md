@@ -204,7 +204,7 @@ $(function() {
     <p>This involves some weird handling with the <code>CGI::unescape</code>, and there's probably a better way to achieve this, but this is one way to do it, and it works fine.</p>
 	<h2>Live example</h2>
   <p>I'll set up a live example running on heroku, on which you'll be able to upload files in more than 30s coming soon </p>
-  <img src="http://www.gifsanimes.net/wp-content/gallery/constructions/Cons.gif" />
+  coming soong
 
 
 	</div>
