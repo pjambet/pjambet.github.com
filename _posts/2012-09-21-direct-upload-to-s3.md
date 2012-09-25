@@ -47,7 +47,7 @@ image: http://www.nasa.gov/images/content/686472main_pia16160-43_800-600.jpg
     <p>Now that we have our new route, let's create the controller which will send back our data to the s3 form</p>
 
     {% highlight ruby %}
-    SignedUrlsController < ApplicationController
+    class SignedUrlsController < ApplicationController
       def index
         render json: {
           policy: s3_upload_policy_document,
