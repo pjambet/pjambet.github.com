@@ -40,7 +40,7 @@ image: http://www.nasa.gov/images/content/686472main_pia16160-43_800-600.jpg
     <p>This example is written with Rails, but writing the same for another framework should be really simple</p>
     {% highlight ruby %}
     MyApp::Application.routes.draw do
-      resource signed_url, only: :index
+      resource :signed_url, only: :index
     end
     {% endhighlight %}
 
