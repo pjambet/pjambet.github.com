@@ -205,23 +205,23 @@ $(function() {
 	<h2>Live example</h2>
   <p>I'll set up a live example running on heroku, on which you'll be able to upload files in more than 30s coming soon </p>
   coming soon
-  
+
   	<h2>EDIT</h2>
   	<p>I changed every access to AWS variables (BUCKET, SECRET_KEY and ACCESS_KEY) by using environment variables.
   	By doing so you don't have to put the variables directly in your files, but you just have to set correctly the variables :</p>
-	
+
 	{% highlight ruby %}
-	export S3_BUCKET=<YOUR BUCKET>
-	export AWS_ACCESS_KEY_ID=<YOUR KEY>
-	export AWS_SECRET_KEY_ID=<YOUR SECRET KEY>
+  export S3_BUCKET=<YOUR BUCKET>
+  export AWS_ACCESS_KEY_ID=<YOUR KEY>
+  export AWS_SECRET_KEY_ID=<YOUR SECRET KEY>
 	{% endhighlight %}
-	
+
 	<p>When deploying on heroku you just have to set the variables with </p>
-	
+
 	{% highlight ruby %}
-	heroku config:add AWS_ACCESS_KEY_ID=<YOUR KEY> --app <YOUR APP>
+  heroku config:add AWS_ACCESS_KEY_ID=<YOUR KEY> --app <YOUR APP>
 	{% endhighlight %}
-	
+
 	</div>
 </div>
 
