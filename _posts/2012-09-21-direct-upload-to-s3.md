@@ -40,7 +40,7 @@ image: http://www.nasa.gov/images/content/686472main_pia16160-43_800-600.jpg
     <p>This example is written with Rails, but writing the same for another framework should be really simple</p>
     {% highlight ruby %}
     MyApp::Application.routes.draw do
-      resource :signed_url, only: :index
+      resources :signed_url, only: :index
     end
     {% endhighlight %}
 
@@ -65,7 +65,7 @@ image: http://www.nasa.gov/images/content/686472main_pia16160-43_800-600.jpg
           {
             expiration: 30.minutes.from_now.utc.strftime('%Y-%m-%dT%H:%M:%S.000Z'),
             conditions: [
-              { bucket: MY_BUCKET },
+              { bucket: ENV['S3_BUCKET'] },
               { acl: 'public-read' },
               ["starts-with", "$key", "uploads/"],
               { success_action_status: '201' }
@@ -79,7 +79,7 @@ image: http://www.nasa.gov/images/content/686472main_pia16160-43_800-600.jpg
         Base64.encode64(
           OpenSSL::HMAC.digest(
             OpenSSL::Digest::Digest.new('sha1'),
-            AWS_SECRET_KEY_ID,
+            ENV['AWS_SECRET_KEY_ID'],
             s3_upload_policy_document
           )
         ).gsub(/\n/, '')
@@ -106,9 +106,9 @@ image: http://www.nasa.gov/images/content/686472main_pia16160-43_800-600.jpg
     <p>Here is the form I'm using, the order of parameter is important.</p>
 
     {% highlight haml %}
-     %form(action="https://BUCKET.s3.amazonaws.com" method="post" enctype="multipart/form-data")
+     %form(action="https://ENV['S3_BUCKET'].s3.amazonaws.com" method="post" enctype="multipart/form-data")
         %input{type: :hidden, name: :key}
-        %input{type: :hidden, name: "AWSAccessKeyId", value: AWS_ACCESS_KEY_ID}
+        %input{type: :hidden, name: "AWSAccessKeyId", value: ENV['AWS_ACCESS_KEY_ID']}
         %input{type: :hidden, name: :acl, value: 'public-read'}
         %input{type: :hidden, name: :policy}
         %input{type: :hidden, name: :signature}
@@ -125,10 +125,10 @@ $(function() {
 
   $('[data-direct-upload]').each(function() {
 
-    var form = $(this).parents('form')
+    var form = $(this).parents('form').first()
 
     $(this).fileupload({
-      url: 'https://BUCKET.s3.amazonaws.com/',
+      url: form.attr('action'),
       type: 'POST',
       autoUpload: true,
       dataType: 'xml', // This is really important as s3 gives us back the url of the file in a XML document
@@ -205,8 +205,23 @@ $(function() {
 	<h2>Live example</h2>
   <p>I'll set up a live example running on heroku, on which you'll be able to upload files in more than 30s coming soon </p>
   coming soon
-
-
+  
+  	<h2>EDIT</h2>
+  	<p>I changed every access to AWS variables (BUCKET, SECRET_KEY and ACCESS_KEY) by using environment variables.
+  	By doing so you don't have to put the variables directly in your files, but you just have to set correctly the variables :</p>
+	
+	{% highlight ruby %}
+	export S3_BUCKET=<YOUR BUCKET>
+  	export AWS_ACCESS_KEY_ID=<YOUR KEY>
+  	export AWS_SECRET_KEY_ID=<YOUR SECRET KEY>
+	{% endhighlight %}
+	
+	<p>When deploying on heroku you just have to set the variables with </p>
+	
+	{% highlight ruby %}
+	heroku config:add AWS_ACCESS_KEY_ID=<YOUR KEY> --app <YOUR APP>
+	{% endhighlight %}
+	
 	</div>
 </div>
 
