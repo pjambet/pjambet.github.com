@@ -220,6 +220,7 @@ $(function() {
 
 	{% highlight ruby %}
   heroku config:add AWS_ACCESS_KEY_ID=<YOUR KEY> --app <YOUR APP>
+  ...
 	{% endhighlight %}
 
 	</div>
