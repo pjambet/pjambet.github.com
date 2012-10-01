@@ -212,8 +212,8 @@ $(function() {
 	
 	{% highlight ruby %}
 	export S3_BUCKET=<YOUR BUCKET>
-  	export AWS_ACCESS_KEY_ID=<YOUR KEY>
-  	export AWS_SECRET_KEY_ID=<YOUR SECRET KEY>
+	export AWS_ACCESS_KEY_ID=<YOUR KEY>
+	export AWS_SECRET_KEY_ID=<YOUR SECRET KEY>
 	{% endhighlight %}
 	
 	<p>When deploying on heroku you just have to set the variables with </p>
