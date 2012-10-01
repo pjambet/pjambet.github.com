@@ -106,7 +106,7 @@ image: http://www.nasa.gov/images/content/686472main_pia16160-43_800-600.jpg
     <p>Here is the form I'm using, the order of parameter is important.</p>
 
     {% highlight haml %}
-     %form(action="https://ENV['S3_BUCKET'].s3.amazonaws.com" method="post" enctype="multipart/form-data")
+     %form(action="https://ENV['S3_BUCKET'].s3.amazonaws.com" method="post" enctype="multipart/form-data" data-direct-upload)
         %input{type: :hidden, name: :key}
         %input{type: :hidden, name: "AWSAccessKeyId", value: ENV['AWS_ACCESS_KEY_ID']}
         %input{type: :hidden, name: :acl, value: 'public-read'}
