@@ -53,7 +53,7 @@ image: http://www.nasa.gov/images/content/686472main_pia16160-43_800-600.jpg
           policy: s3_upload_policy_document,
           signature: s3_upload_signature,
           key: "uploads/#{SecureRandom.uuid}/#{params[:doc][:title]}",
-          success_action_redirect: board_url
+          success_action_redirect: "/"
         }
       end
 
