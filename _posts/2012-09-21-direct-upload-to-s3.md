@@ -106,7 +106,7 @@ image: http://www.nasa.gov/images/content/686472main_pia16160-43_800-600.jpg
     <p>Here is the form I'm using, the order of parameter is important.</p>
 
     {% highlight haml %}
-     %form(action="https://ENV['S3_BUCKET'].s3.amazonaws.com" method="post" enctype="multipart/form-data" data-direct-upload)
+     %form(action="https://ENV['S3_BUCKET'].s3.amazonaws.com" method="post" enctype="multipart/form-data" class='direct-upload')
         %input{type: :hidden, name: :key}
         %input{type: :hidden, name: "AWSAccessKeyId", value: ENV['AWS_ACCESS_KEY_ID']}
         %input{type: :hidden, name: :acl, value: 'public-read'}
@@ -114,7 +114,7 @@ image: http://www.nasa.gov/images/content/686472main_pia16160-43_800-600.jpg
         %input{type: :hidden, name: :signature}
         %input{type: :hidden, name: :success_action_status, value: "201"}
 
-        %input{type: :file, name: :file, data: { :'direct-upload' => true } }
+        %input{type: :file, name: :file }
         - # You can recognize some bootstrap markup here :)
         .progress.progress-striped.active
           .bar
@@ -123,9 +123,9 @@ image: http://www.nasa.gov/images/content/686472main_pia16160-43_800-600.jpg
     {% highlight javascript %}
 $(function() {
 
-  $('[data-direct-upload]').each(function() {
+  $('.direct-upload').each(function() {
 
-    var form = $(this).parents('form').first()
+    var form = $(this)
 
     $(this).fileupload({
       url: form.attr('action'),
