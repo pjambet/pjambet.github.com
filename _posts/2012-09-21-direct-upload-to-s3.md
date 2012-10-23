@@ -1,6 +1,8 @@
 ---
 layout: post
 title: Direct upload to s3 with cors
+description: How to upload file directly to amazon s3 using jQuery
+keywords: direct upload amazon s3
 category: Coding
 tags: aws javascript rails
 year: 2012
