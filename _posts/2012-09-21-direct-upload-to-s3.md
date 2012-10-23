@@ -204,7 +204,8 @@ $(function() {
     <p>This involves some weird handling with the <code>CGI::unescape</code>, and there's probably a better way to achieve this, but this is one way to do it, and it works fine.</p>
 	<h2>Live example</h2>
   <p>I'll set up a live example running on heroku, on which you'll be able to upload files in more than 30s coming soon </p>
-  coming soon
+  <h3>Finally !</h3>
+<p>The demo if finally here : <a href="http://direct-upload.herokuapp.com"  >http://direct-upload.herokuapp.com</a> and code source can be found here :  <a href="https://github.com/pjambet/direct-upload"  >https://github.com/pjambet/direct-upload</a> </p>
 
   	<h2>EDIT</h2>
   	<p>I changed every access to AWS variables (BUCKET, SECRET_KEY and ACCESS_KEY) by using environment variables.
