@@ -80,7 +80,7 @@
 		<a href="https://twitter.com/share" class="twitter-share-button" data-via="pjambet">Tweet</a> <g:plusone size="medium"></g:plusone></h5>
 	</div>		
 	<div class="span6 column">
-		<p class="pull-right">    </p>  
+		<p class="pull-right">    	<a href="/blog/beech-app" title="Next Post: New revolutionnary app coming soon"><i class="icon-chevron-right"></i></a> 	 </p>  
 	</div>	
 </div>
 <div class="row">
@@ -123,7 +123,7 @@
     <p>This example is written with Rails, but writing the same for another framework should be really simple</p>
     
 <div class="highlight"><pre><code class="ruby">    <span class="no">MyApp</span><span class="o">::</span><span class="no">Application</span><span class="o">.</span><span class="n">routes</span><span class="o">.</span><span class="n">draw</span> <span class="k">do</span>
-      <span class="n">resource</span> <span class="n">signed_url</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="ss">:index</span>
+      <span class="n">resources</span> <span class="ss">:signed_url</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="ss">:index</span>
     <span class="k">end</span>
     
 </code></pre>
@@ -134,13 +134,13 @@
     <p>Now that we have our new route, let's create the controller which will send back our data to the s3 form</p>
 
     
-<div class="highlight"><pre><code class="ruby">    <span class="no">SignedUrlsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+<div class="highlight"><pre><code class="ruby">    <span class="k">class</span> <span class="nc">SignedUrlsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
       <span class="k">def</span> <span class="nf">index</span>
         <span class="n">render</span> <span class="n">json</span><span class="p">:</span> <span class="p">{</span>
           <span class="n">policy</span><span class="p">:</span> <span class="n">s3_upload_policy_document</span><span class="p">,</span>
           <span class="n">signature</span><span class="p">:</span> <span class="n">s3_upload_signature</span><span class="p">,</span>
           <span class="n">key</span><span class="p">:</span> <span class="s2">&quot;uploads/</span><span class="si">#{</span><span class="no">SecureRandom</span><span class="o">.</span><span class="n">uuid</span><span class="si">}</span><span class="s2">/</span><span class="si">#{</span><span class="n">params</span><span class="o">[</span><span class="ss">:doc</span><span class="o">][</span><span class="ss">:title</span><span class="o">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-          <span class="n">success_action_redirect</span><span class="p">:</span> <span class="n">board_url</span>
+          <span class="n">success_action_redirect</span><span class="p">:</span> <span class="s2">&quot;/&quot;</span>
         <span class="p">}</span>
       <span class="k">end</span>
 
@@ -152,7 +152,7 @@
           <span class="p">{</span>
             <span class="n">expiration</span><span class="p">:</span> <span class="mi">30</span><span class="o">.</span><span class="n">minutes</span><span class="o">.</span><span class="n">from_now</span><span class="o">.</span><span class="n">utc</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-%dT%H:%M:%S.000Z&#39;</span><span class="p">),</span>
             <span class="n">conditions</span><span class="p">:</span> <span class="o">[</span>
-              <span class="p">{</span> <span class="n">bucket</span><span class="p">:</span> <span class="no">MY_BUCKET</span> <span class="p">},</span>
+              <span class="p">{</span> <span class="n">bucket</span><span class="p">:</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;S3_BUCKET&#39;</span><span class="o">]</span> <span class="p">},</span>
               <span class="p">{</span> <span class="n">acl</span><span class="p">:</span> <span class="s1">&#39;public-read&#39;</span> <span class="p">},</span>
               <span class="o">[</span><span class="s2">&quot;starts-with&quot;</span><span class="p">,</span> <span class="s2">&quot;$key&quot;</span><span class="p">,</span> <span class="s2">&quot;uploads/&quot;</span><span class="o">]</span><span class="p">,</span>
               <span class="p">{</span> <span class="n">success_action_status</span><span class="p">:</span> <span class="s1">&#39;201&#39;</span> <span class="p">}</span>
@@ -166,7 +166,7 @@
         <span class="no">Base64</span><span class="o">.</span><span class="n">encode64</span><span class="p">(</span>
           <span class="no">OpenSSL</span><span class="o">::</span><span class="no">HMAC</span><span class="o">.</span><span class="n">digest</span><span class="p">(</span>
             <span class="no">OpenSSL</span><span class="o">::</span><span class="no">Digest</span><span class="o">::</span><span class="no">Digest</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">&#39;sha1&#39;</span><span class="p">),</span>
-            <span class="no">AWS_SECRET_KEY_ID</span><span class="p">,</span>
+            <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;AWS_SECRET_KEY_ID&#39;</span><span class="o">]</span><span class="p">,</span>
             <span class="n">s3_upload_policy_document</span>
           <span class="p">)</span>
         <span class="p">)</span><span class="o">.</span><span class="n">gsub</span><span class="p">(</span><span class="sr">/\n/</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
@@ -197,15 +197,15 @@
     <p>Here is the form I'm using, the order of parameter is important.</p>
 
     
-<div class="highlight"><pre><code class="haml">     <span class="nt">%form</span>(<span class="na">action=</span><span class="s">&quot;https://BUCKET.s3.amazonaws.com&quot;</span> <span class="na">method=</span><span class="s">&quot;post&quot;</span> <span class="na">enctype=</span><span class="s">&quot;multipart/form-data&quot;</span>)
+<div class="highlight"><pre><code class="haml">     <span class="nt">%form</span>(<span class="na">action=</span><span class="s">&quot;https://ENV[&#39;S3_BUCKET&#39;].s3.amazonaws.com&quot;</span> <span class="na">method=</span><span class="s">&quot;post&quot;</span> <span class="na">enctype=</span><span class="s">&quot;multipart/form-data&quot;</span> <span class="na">class=</span><span class="s">&#39;direct-upload&#39;</span>)
         <span class="nt">%input</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="ss">:hidden</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="ss">:key</span><span class="p">}</span>
-        <span class="nt">%input</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="ss">:hidden</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="s2">&quot;AWSAccessKeyId&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="no">AWS_ACCESS_KEY_ID</span><span class="p">}</span>
+        <span class="nt">%input</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="ss">:hidden</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="s2">&quot;AWSAccessKeyId&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;AWS_ACCESS_KEY_ID&#39;</span><span class="o">]</span><span class="p">}</span>
         <span class="nt">%input</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="ss">:hidden</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="ss">:acl</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="s1">&#39;public-read&#39;</span><span class="p">}</span>
         <span class="nt">%input</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="ss">:hidden</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="ss">:policy</span><span class="p">}</span>
         <span class="nt">%input</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="ss">:hidden</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="ss">:signature</span><span class="p">}</span>
         <span class="nt">%input</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="ss">:hidden</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="ss">:success_action_status</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="s2">&quot;201&quot;</span><span class="p">}</span>
 
-        <span class="nt">%input</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="ss">:file</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="ss">:file</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="p">{</span> <span class="ss">:&#39;direct-upload&#39;</span> <span class="o">=&gt;</span> <span class="kp">true</span> <span class="p">}</span> }
+        <span class="nt">%input</span><span class="p">{</span><span class="n">type</span><span class="p">:</span> <span class="ss">:file</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="ss">:file</span> <span class="p">}</span>
         <span class="p">-</span> <span class="c1"># You can recognize some bootstrap markup here :)</span>
         <span class="nc">.progress.progress-striped.active</span>
           <span class="nc">.bar</span>
@@ -218,12 +218,12 @@
     
 <div class="highlight"><pre><code class="javascript"><span class="nx">$</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
 
-  <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;[data-direct-upload]&#39;</span><span class="p">).</span><span class="nx">each</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+  <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.direct-upload&#39;</span><span class="p">).</span><span class="nx">each</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
 
-    <span class="kd">var</span> <span class="nx">form</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">).</span><span class="nx">parents</span><span class="p">(</span><span class="s1">&#39;form&#39;</span><span class="p">)</span>
+    <span class="kd">var</span> <span class="nx">form</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">)</span>
 
     <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">).</span><span class="nx">fileupload</span><span class="p">({</span>
-      <span class="nx">url</span><span class="o">:</span> <span class="s1">&#39;https://BUCKET.s3.amazonaws.com/&#39;</span><span class="p">,</span>
+      <span class="nx">url</span><span class="o">:</span> <span class="nx">form</span><span class="p">.</span><span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;action&#39;</span><span class="p">),</span>
       <span class="nx">type</span><span class="o">:</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span>
       <span class="nx">autoUpload</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
       <span class="nx">dataType</span><span class="o">:</span> <span class="s1">&#39;xml&#39;</span><span class="p">,</span> <span class="c1">// This is really important as s3 gives us back the url of the file in a XML document</span>
@@ -307,7 +307,31 @@
     <p>This involves some weird handling with the <code>CGI::unescape</code>, and there's probably a better way to achieve this, but this is one way to do it, and it works fine.</p>
     <h2>Live example</h2>
   <p>I'll set up a live example running on heroku, on which you'll be able to upload files in more than 30s coming soon </p>
-  <img src="http://www.gifsanimes.net/wp-content/gallery/constructions/Cons.gif" />
+  coming soon
+
+    <h2>EDIT</h2>
+    <p>I changed every access to AWS variables (BUCKET, SECRET_KEY and ACCESS_KEY) by using environment variables.
+    By doing so you don't have to put the variables directly in your files, but you just have to set correctly the variables :</p>
+
+    
+<div class="highlight"><pre><code class="ruby">  <span class="n">export</span> <span class="no">S3_BUCKET</span><span class="o">=&lt;</span><span class="no">YOUR</span> <span class="no">BUCKET</span><span class="o">&gt;</span>
+  <span class="n">export</span> <span class="no">AWS_ACCESS_KEY_ID</span><span class="o">=&lt;</span><span class="no">YOUR</span> <span class="no">KEY</span><span class="o">&gt;</span>
+  <span class="n">export</span> <span class="no">AWS_SECRET_KEY_ID</span><span class="o">=&lt;</span><span class="no">YOUR</span> <span class="no">SECRET</span> <span class="no">KEY</span><span class="o">&gt;</span>
+    
+</code></pre>
+</div>
+
+
+
+    <p>When deploying on heroku you just have to set the variables with </p>
+
+    
+<div class="highlight"><pre><code class="ruby">  <span class="n">heroku</span> <span class="n">config</span><span class="ss">:add</span> <span class="no">AWS_ACCESS_KEY_ID</span><span class="o">=&lt;</span><span class="no">YOUR</span> <span class="no">KEY</span><span class="o">&gt;</span> <span class="o">--</span><span class="n">app</span> <span class="o">&lt;</span><span class="no">YOUR</span> <span class="no">APP</span><span class="o">&gt;</span>
+  <span class="o">.</span><span class="n">.</span><span class="o">.</span>
+    
+</code></pre>
+</div>
+
 
 
     </div>
@@ -318,7 +342,7 @@
 
 <div class="row">
     <div class="span9 column">
-            <p class="pull-right">    </p>
+            <p class="pull-right">      <a href="/blog/beech-app" title="Next Post: New revolutionnary app coming soon"><i class="icon-chevron-right"></i></a>   </p>
     </div>
 </div>
 
@@ -378,8 +402,8 @@
 	 </div>
 	<footer class="footer">
   <div class="container">
-	<p class="pull-right">  |  <a href="#">Back to top</a>  |   </p>
-	<p>Page last generated on September 25, 2012</p>
+	<p class="pull-right">  |  <a href="#">Back to top</a>  |   	<a href="/blog/beech-app" title="Next Post: New revolutionnary app coming soon">Next Blog Post &raquo; </a> 	 </p>
+	<p>Page last generated on November 19, 2012</p>
 	<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
   </div>
 </footer>
