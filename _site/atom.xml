@@ -4,7 +4,7 @@
  <title>Eric Jones</title>
  <link href="http://pjambet.github.com/atom.xml" rel="self"/>
  <link href="http://pjambet.github.com/"/>
- <updated>2012-11-19T22:17:31+01:00</updated>
+ <updated>2012-11-19T22:26:54+01:00</updated>
  <id>http://pjambet.github.com</id>
  <author>
    <name>Eric Jones</name>
@@ -294,7 +294,8 @@
     &lt;p&gt;This involves some weird handling with the &lt;code&gt;CGI::unescape&lt;/code&gt;, and there's probably a better way to achieve this, but this is one way to do it, and it works fine.&lt;/p&gt;
     &lt;h2&gt;Live example&lt;/h2&gt;
   &lt;p&gt;I'll set up a live example running on heroku, on which you'll be able to upload files in more than 30s coming soon &lt;/p&gt;
-  coming soon
+  &lt;h3&gt;Finally !&lt;/h3&gt;
+&lt;p&gt;The demo if finally here : &lt;a href=&quot;http://direct-upload.herokuapp.com&quot;  &gt;http://direct-upload.herokuapp.com&lt;/a&gt; and code source can be found here :  &lt;a href=&quot;https://github.com/pjambet/direct-upload&quot;  &gt;https://github.com/pjambet/direct-upload&lt;/a&gt; &lt;/p&gt;
 
     &lt;h2&gt;EDIT&lt;/h2&gt;
     &lt;p&gt;I changed every access to AWS variables (BUCKET, SECRET_KEY and ACCESS_KEY) by using environment variables.

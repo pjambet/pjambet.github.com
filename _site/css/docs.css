@@ -35,13 +35,13 @@ body {
   text-decoration: none;
 }
 
-img.floatLeft { 
-    float: left; 
-    margin: 4px 8px 4px 0px;  /*top, right, botom, left*/ 
+img.floatLeft {
+    float: left;
+    margin: 4px 8px 4px 0px;  /*top, right, botom, left*/
 }
-img.floatRight { 
-    float: right; 
-    margin: 4px; 
+img.floatRight {
+    float: right;
+    margin: 4px;
 }
 
 /* Space out sub-sections more
@@ -235,7 +235,7 @@ hr.soften {
   top: 5px;
 }
 
-.mebox { 
+.mebox {
 	padding-left: 15px;
 	padding-right: 15px;
 	padding-top: 15px;
@@ -249,7 +249,7 @@ hr.soften {
 /* Marketing section of Overview
 -------------------------------------------------- */
 .marketing .row {
-  margin-bottom: 9px; 
+  margin-bottom: 9px;
 }
 .marketing h1 {
   margin: 36px 0 27px;
@@ -849,4 +849,8 @@ a.social.gplus {
 
 a.social.gplus:hover {
   background: url(/img/social_icons.png) -170px -34px no-repeat;
+}
+
+.post-image {
+  width: 220px;
 }
