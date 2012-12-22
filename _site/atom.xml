@@ -4,7 +4,7 @@
  <title>Eric Jones</title>
  <link href="http://pjambet.github.com/atom.xml" rel="self"/>
  <link href="http://pjambet.github.com/"/>
- <updated>2012-11-19T22:26:54+01:00</updated>
+ <updated>2012-12-22T12:35:04+01:00</updated>
  <id>http://pjambet.github.com</id>
  <author>
    <name>Eric Jones</name>
@@ -79,6 +79,9 @@
    <id>http://pjambet.github.com/blog/direct-upload-to-s3</id>
    <content type="html">&lt;div class=&quot;row&quot;&gt;
     &lt;div class=&quot;span9 columns&quot;&gt;
+    &lt;h2&gt;EDIT&lt;/h2&gt;
+    &lt;p&gt;Everything detailed in this article has been wrapped up in thi &lt;a href=&quot;https://github.com/waynehoover/s3_direct_upload&quot;&gt;gem&lt;/a&gt;, you should give it a look !&lt;/p&gt;
+    &lt;p&gt;Anyway, I still advise you to read this article as it will probably help you how everything works !&lt;/p&gt;
       &lt;h2&gt;Preface&lt;/h2&gt;
       &lt;p&gt;Since beginning of september, Amazon added &lt;a href=&quot;http://www.w3.org/TR/cors/&quot;&gt;CORS&lt;/a&gt; support to S3. As this is quite recent, there are not yet a lot of documentation and tutorials about how to set eveything up and running for your app.&lt;/p&gt;
       &lt;p&gt;Furthermore, &lt;a href=&quot;http://blueimp.github.com/jQuery-File-Upload/&quot;&gt;this jQuery plugin&lt;/a&gt; is awesome, mainly for the progress bar handling, but sadly the example &lt;a href=&quot;https://github.com/blueimp/jQuery-File-Upload/wiki/Upload-directly-to-S3&quot;&gt;in the wiki&lt;/a&gt; is obsolete.&lt;/p&gt;

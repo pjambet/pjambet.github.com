@@ -15,6 +15,9 @@ image: http://www.nasa.gov/images/content/686472main_pia16160-43_800-600.jpg
 
 <div class="row">
 	<div class="span9 columns">
+    <h2>EDIT</h2>
+    <p>Everything detailed in this article has been wrapped up in thi <a href="https://github.com/waynehoover/s3_direct_upload">gem</a>, you should give it a look !</p>
+    <p>Anyway, I still advise you to read this article as it will probably help you how everything works !</p>
 	  <h2>Preface</h2>
 	  <p>Since beginning of september, Amazon added <a href="http://www.w3.org/TR/cors/">CORS</a> support to S3. As this is quite recent, there are not yet a lot of documentation and tutorials about how to set eveything up and running for your app.</p>
 	  <p>Furthermore, <a href="http://blueimp.github.com/jQuery-File-Upload/">this jQuery plugin</a> is awesome, mainly for the progress bar handling, but sadly the example <a href="https://github.com/blueimp/jQuery-File-Upload/wiki/Upload-directly-to-S3">in the wiki</a> is obsolete.</p>
