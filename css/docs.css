@@ -854,3 +854,9 @@ a.social.gplus:hover {
 .post-image {
   width: 220px;
 }
+
+.images {
+  text-align: center;
+  margin: 10px auto;
+}
+
