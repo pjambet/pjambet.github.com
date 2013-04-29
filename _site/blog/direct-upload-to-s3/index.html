@@ -118,9 +118,7 @@
       <span class="nt">&lt;/CORSRule&gt;</span>
     <span class="nt">&lt;/CORSConfiguration&gt;</span>
     
-</code></pre>
-</div>
-
+</code></pre></div>
 
     <p>Of course those settings are only for development purpose, you'll probably want to restrict the Allowed Origin rule to your domain only. <a href="http://docs.amazonwebservices.com/AmazonS3/latest/dev/cors.html">Documentation</a> about those settings is quite good.</p>
 
@@ -133,9 +131,7 @@
       <span class="n">resources</span> <span class="ss">:signed_url</span><span class="p">,</span> <span class="ss">only</span><span class="p">:</span> <span class="ss">:index</span>
     <span class="k">end</span>
     
-</code></pre>
-</div>
-
+</code></pre></div>
 
 
     <p>Now that we have our new route, let's create the controller which will send back our data to the s3 form</p>
@@ -180,9 +176,7 @@
       <span class="k">end</span>
     <span class="k">end</span>
     
-</code></pre>
-</div>
-
+</code></pre></div>
 
     <p>The policy and signature method are stolen from the linked blog posts above with one exception, I had to include the "starts-width" constraint, otherwise s3 was yelling 403 to me.</p>
     <p>Everything else is quite straight forward, there's just a small detail to consider if you set the acl to 'private', but more on that later.</p>
@@ -217,9 +211,7 @@
         <span class="nc">.progress.progress-striped.active</span>
           <span class="nc">.bar</span>
     
-</code></pre>
-</div>
-
+</code></pre></div>
 
 
     
@@ -278,9 +270,7 @@
   <span class="p">})</span>
 <span class="p">})</span>
     
-</code></pre>
-</div>
-
+</code></pre></div>
 
 
     <p>So quick explanation about what's going on here : </p>
@@ -307,9 +297,7 @@
       <span class="n">use_ssl</span><span class="p">:</span> <span class="kp">true</span><span class="p">)</span>
   <span class="k">end</span>
     
-</code></pre>
-</div>
-
+</code></pre></div>
 
     <p>This involves some weird handling with the <code>CGI::unescape</code>, and there's probably a better way to achieve this, but this is one way to do it, and it works fine.</p>
     <h2>Live example</h2>
@@ -326,9 +314,7 @@
   <span class="n">export</span> <span class="no">AWS_ACCESS_KEY_ID</span><span class="o">=&lt;</span><span class="no">YOUR</span> <span class="no">KEY</span><span class="o">&gt;</span>
   <span class="n">export</span> <span class="no">AWS_SECRET_KEY_ID</span><span class="o">=&lt;</span><span class="no">YOUR</span> <span class="no">SECRET</span> <span class="no">KEY</span><span class="o">&gt;</span>
     
-</code></pre>
-</div>
-
+</code></pre></div>
 
 
     <p>When deploying on heroku you just have to set the variables with </p>
@@ -337,9 +323,7 @@
 <div class="highlight"><pre><code class="ruby">  <span class="n">heroku</span> <span class="ss">config</span><span class="p">:</span><span class="n">add</span> <span class="no">AWS_ACCESS_KEY_ID</span><span class="o">=&lt;</span><span class="no">YOUR</span> <span class="no">KEY</span><span class="o">&gt;</span> <span class="o">--</span><span class="n">app</span> <span class="o">&lt;</span><span class="no">YOUR</span> <span class="no">APP</span><span class="o">&gt;</span>
   <span class="o">.</span><span class="n">.</span><span class="o">.</span>
     
-</code></pre>
-</div>
-
+</code></pre></div>
 
 
     </div>
@@ -453,7 +437,7 @@
 	<footer class="footer">
   <div class="container">
 	<p class="pull-right">  |  <a href="#">Back to top</a>  |   	<a href="/blog/beech-app" title="Next Post: New revolutionnary app coming soon">Next Blog Post &raquo; </a> 	 </p>
-	<p>Page last generated on March 16, 2013</p>
+	<p>Page last generated on April 29, 2013</p>
 	<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
   </div>
 </footer>
