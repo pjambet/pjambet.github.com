@@ -198,7 +198,7 @@
     <p>Here is the form I'm using, the order of parameter is important.</p>
 
     
-<div class="highlight"><pre><code class="haml">     <span class="nt">%form</span>(<span class="na">action=</span><span class="s">&quot;https://ENV[&#39;S3_BUCKET&#39;].s3.amazonaws.com&quot;</span> <span class="na">method=</span><span class="s">&quot;post&quot;</span> <span class="na">enctype=</span><span class="s">&quot;multipart/form-data&quot;</span> <span class="na">class=</span><span class="s">&#39;direct-upload&#39;</span>)
+<div class="highlight"><pre><code class="haml">     <span class="nt">%form</span>(<span class="na">action=</span><span class="s">&quot;https://#{ENV[&#39;S3_BUCKET&#39;]}.s3.amazonaws.com&quot;</span> <span class="na">method=</span><span class="s">&quot;post&quot;</span> <span class="na">enctype=</span><span class="s">&quot;multipart/form-data&quot;</span> <span class="na">class=</span><span class="s">&#39;direct-upload&#39;</span>)
         <span class="nt">%input</span><span class="p">{</span><span class="ss">type</span><span class="p">:</span> <span class="ss">:hidden</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="ss">:key</span><span class="p">}</span>
         <span class="nt">%input</span><span class="p">{</span><span class="ss">type</span><span class="p">:</span> <span class="ss">:hidden</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="s2">&quot;AWSAccessKeyId&quot;</span><span class="p">,</span> <span class="ss">value</span><span class="p">:</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;AWS_ACCESS_KEY_ID&#39;</span><span class="o">]</span><span class="p">}</span>
         <span class="nt">%input</span><span class="p">{</span><span class="ss">type</span><span class="p">:</span> <span class="ss">:hidden</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="ss">:acl</span><span class="p">,</span> <span class="ss">value</span><span class="p">:</span> <span class="s1">&#39;public-read&#39;</span><span class="p">}</span>
@@ -437,7 +437,7 @@
 	<footer class="footer">
   <div class="container">
 	<p class="pull-right">  |  <a href="#">Back to top</a>  |   	<a href="/blog/beech-app" title="Next Post: New revolutionnary app coming soon">Next Blog Post &raquo; </a> 	 </p>
-	<p>Page last generated on April 29, 2013</p>
+	<p>Page last generated on July 18, 2013</p>
 	<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
   </div>
 </footer>
@@ -479,6 +479,8 @@
 	  var _gaq = _gaq || [];
 	  _gaq.push(['_setAccount', 'UA-35058499-1']);
 	  _gaq.push(['_trackPageview']);
+
+    setTimeout("_gaq.push(['_trackEvent', '15_seconds', 'read'])", 15000);
 
 	  (function() {
 		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
