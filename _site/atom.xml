@@ -4,7 +4,7 @@
  <title>Eric Jones</title>
  <link href="http://pjambet.github.com/atom.xml" rel="self"/>
  <link href="http://pjambet.github.com/"/>
- <updated>2013-08-28T15:26:58-04:00</updated>
+ <updated>2013-08-28T16:58:13-04:00</updated>
  <id>http://pjambet.github.com</id>
  <author>
    <name>Eric Jones</name>
@@ -35,7 +35,7 @@ so I thought I would sum up my findings here.&lt;/p&gt;
 &lt;h2&gt;Technical details !&lt;/h2&gt;
 
 &lt;p&gt;Basically, in order to store the whole range of UTF8 characters, each chararacter
-as to be 4 bytes wide. But MySQL, with its default UTF8 encoding will only
+has to be 4 bytes wide. But MySQL, with its default UTF8 encoding will only
 allocate 3 bytes per character.
 This becomes a problem when users try to insert character such as emojis in your
 database.
@@ -93,7 +93,7 @@ python manage.py migrate anotherapp
 
 &lt;p&gt;&lt;code&gt;python manage.py sqall djcelery&lt;/code&gt;&lt;/p&gt;
 
-&lt;p&gt;Which should give you and output similar to :&lt;/p&gt;
+&lt;p&gt;Which should give you an output similar to :&lt;/p&gt;
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;text language-text&quot; data-lang=&quot;text&quot;&gt;BEGIN;
 CREATE TABLE `celery_taskmeta` (
     `id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY,
@@ -114,8 +114,8 @@ COMMIT;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Then copy this in your favorite editor (vim, of course !), and specify the
 &lt;code&gt;CHARACTER SET&lt;/code&gt; as &lt;code&gt;utf8&lt;/code&gt; for each table. This should not cause any issues, as
-all the data that is gonna be inserted in those tables controlled by celery
-itself, and there should not be any enojis are other 4 bytes wide characters.&lt;/p&gt;
+all the data that is gonna be inserted in those tables is controlled by celery
+itself, and there should not be any emojis are other 4 bytes wide characters.&lt;/p&gt;
 
 &lt;p&gt;Then your new file should look like :&lt;/p&gt;
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;text language-text&quot; data-lang=&quot;text&quot;&gt;BEGIN;

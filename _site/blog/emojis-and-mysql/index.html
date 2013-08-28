@@ -113,7 +113,7 @@ so I thought I would sum up my findings here.</p>
 <h2>Technical details !</h2>
 
 <p>Basically, in order to store the whole range of UTF8 characters, each chararacter
-as to be 4 bytes wide. But MySQL, with its default UTF8 encoding will only
+has to be 4 bytes wide. But MySQL, with its default UTF8 encoding will only
 allocate 3 bytes per character.
 This becomes a problem when users try to insert character such as emojis in your
 database.
@@ -171,7 +171,7 @@ python manage.py migrate anotherapp
 
 <p><code>python manage.py sqall djcelery</code></p>
 
-<p>Which should give you and output similar to :</p>
+<p>Which should give you an output similar to :</p>
 <div class="highlight"><pre><code class="text language-text" data-lang="text">BEGIN;
 CREATE TABLE `celery_taskmeta` (
     `id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY,
@@ -192,8 +192,8 @@ COMMIT;
 </code></pre></div>
 <p>Then copy this in your favorite editor (vim, of course !), and specify the
 <code>CHARACTER SET</code> as <code>utf8</code> for each table. This should not cause any issues, as
-all the data that is gonna be inserted in those tables controlled by celery
-itself, and there should not be any enojis are other 4 bytes wide characters.</p>
+all the data that is gonna be inserted in those tables is controlled by celery
+itself, and there should not be any emojis are other 4 bytes wide characters.</p>
 
 <p>Then your new file should look like :</p>
 <div class="highlight"><pre><code class="text language-text" data-lang="text">BEGIN;

@@ -32,7 +32,7 @@ then maybe this article can help you.
 ## Technical details !
 
 Basically, in order to store the whole range of UTF8 characters, each chararacter
-as to be 4 bytes wide. But MySQL, with its default UTF8 encoding will only
+has to be 4 bytes wide. But MySQL, with its default UTF8 encoding will only
 allocate 3 bytes per character.
 This becomes a problem when users try to insert character such as emojis in your
 database.
@@ -94,7 +94,7 @@ and for the app that fails, such as `djcelery`, first run
 
 `python manage.py sqall djcelery`
 
-Which should give you and output similar to :
+Which should give you an output similar to :
 
     BEGIN;
     CREATE TABLE `celery_taskmeta` (
@@ -116,8 +116,8 @@ Which should give you and output similar to :
 
 Then copy this in your favorite editor (vim, of course !), and specify the
 `CHARACTER SET` as `utf8` for each table. This should not cause any issues, as
-all the data that is gonna be inserted in those tables controlled by celery
-itself, and there should not be any enojis are other 4 bytes wide characters.
+all the data that is gonna be inserted in those tables is controlled by celery
+itself, and there should not be any emojis are other 4 bytes wide characters.
 
 Then your new file should look like :
 
