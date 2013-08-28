@@ -21,15 +21,11 @@ so I thought I would sum up my findings here.
 
 If you've seen stuff like
 
-```
-Mysql::Error: Specified key was too long; max key length is 767 bytes
-```
+    Mysql::Error: Specified key was too long; max key length is 767 bytes
 
 or
 
-```
-Mysql2::Error: Incorrect string value: '\xF0\x9F\x8F\xA0' for column 'body' at row 1 ...
-```
+    Mysql2::Error: Incorrect string value: '\xF0\x9F\x8F\xA0' for column 'body' at row 1 ...
 
 then maybe this article can help you.
 
@@ -56,27 +52,23 @@ Using utf8mb4 is quite straight forward
 
 in your new project :
 
-```
-$> django-admin.py startproject test
-```
+    $> django-admin.py startproject test
 
 Simply add the `charset` option in the `DATABASES` setting :
 
 *settings.py*
 
-```
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'test',
-        'USER': 'test_user'
-        'OPTIONS': {'charset': 'utf8mb4'},
-        'PASSWORD': '',
-        'HOST': '',
-        'PORT': '',
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'test',
+            'USER': 'test_user'
+            'OPTIONS': {'charset': 'utf8mb4'},
+            'PASSWORD': '',
+            'HOST': '',
+            'PORT': '',
+        }
     }
-}
-```
 
 And you're good to go !
 
@@ -90,17 +82,13 @@ libraries, such as celery try to index some column with a 255 max length.
 So if you have `djcelery` in your `INSTALLED_APPS`, running your migrations
 (`python manage.py migrate`) will fail with a nice :
 
-```
-django.db.utils.DatabaseError: (1071, 'Specified key was too long; max key length is 767 bytes')
-```
+    django.db.utils.DatabaseError: (1071, 'Specified key was too long; max key length is 767 bytes')
 
 The only solution I found so far is to only run migrations on an app per app
 basis.
 
-```
-python manage.py migrate myapp
-python manage.py migrate anotherapp
-```
+    python manage.py migrate myapp
+    python manage.py migrate anotherapp
 
 and for the app that fails, such as `djcelery`, first run
 
@@ -108,25 +96,23 @@ and for the app that fails, such as `djcelery`, first run
 
 Which should give you and output similar to :
 
-```
-BEGIN;
-CREATE TABLE `celery_taskmeta` (
-    `id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY,
-    `task_id` varchar(255) NOT NULL UNIQUE,
-    `status` varchar(50) NOT NULL,
-    `result` longtext,
-    `date_done` datetime NOT NULL,
-    `traceback` longtext,
-    `hidden` bool NOT NULL,
-    `meta` longtext
-)
-;
+    BEGIN;
+    CREATE TABLE `celery_taskmeta` (
+        `id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY,
+        `task_id` varchar(255) NOT NULL UNIQUE,
+        `status` varchar(50) NOT NULL,
+        `result` longtext,
+        `date_done` datetime NOT NULL,
+        `traceback` longtext,
+        `hidden` bool NOT NULL,
+        `meta` longtext
+    )
+    ;
 
-# other CREATE TABLES ...
+    # other CREATE TABLES ...
 
-CREATE INDEX `djcelery_taskstate_c91f1bf` ON `djcelery_taskstate` (`hidden`);
-COMMIT;
-```
+    CREATE INDEX `djcelery_taskstate_c91f1bf` ON `djcelery_taskstate` (`hidden`);
+    COMMIT;
 
 Then copy this in your favorite editor (vim, of course !), and specify the
 `CHARACTER SET` as `utf8` for each table. This should not cause any issues, as
@@ -135,22 +121,20 @@ itself, and there should not be any enojis are other 4 bytes wide characters.
 
 Then your new file should look like :
 
-```
-BEGIN;
-CREATE TABLE `celery_taskmeta` (
-    `id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY,
-    `task_id` varchar(255) NOT NULL UNIQUE,
-    `status` varchar(50) NOT NULL,
-    `result` longtext,
-    `date_done` datetime NOT NULL,
-    `traceback` longtext,
-    `hidden` bool NOT NULL,
-    `meta` longtext
-) CHARACTER SET=utf8 # Note the CHARACTER SET explictly set
-;
+    BEGIN;
+    CREATE TABLE `celery_taskmeta` (
+        `id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY,
+        `task_id` varchar(255) NOT NULL UNIQUE,
+        `status` varchar(50) NOT NULL,
+        `result` longtext,
+        `date_done` datetime NOT NULL,
+        `traceback` longtext,
+        `hidden` bool NOT NULL,
+        `meta` longtext
+    ) CHARACTER SET=utf8 # Note the CHARACTER SET explictly set
+    ;
 
-# ... and the rest
-```
+    # ... and the rest
 
 PS : I've opened [an issue on
 github](https://github.com/celery/django-celery/issues/259), and I am still
@@ -165,53 +149,49 @@ rails 4.0.0
 
 in your new rails project :
 
-```
-$> rails new test -d mysql
-```
+    $> rails new test -d mysql
 
 *database.yml*
 
-```
-# MySQL.  Versions 4.1 and 5.0 are recommended.
-#
-# Install the MYSQL driver
-#   gem install mysql2
-#
-# Ensure the MySQL gem is defined in your Gemfile
-#   gem 'mysql2'
-#
-# And be sure to use new-style password hashing:
-#   http://dev.mysql.com/doc/refman/5.0/en/old-client.html
-development:
-  adapter: mysql2
-  encoding: utf8mb4
-  database: test_development
-  pool: 5
-  username: root
-  password:
-  socket: /tmp/mysql.sock
+    # MySQL.  Versions 4.1 and 5.0 are recommended.
+    #
+    # Install the MYSQL driver
+    #   gem install mysql2
+    #
+    # Ensure the MySQL gem is defined in your Gemfile
+    #   gem 'mysql2'
+    #
+    # And be sure to use new-style password hashing:
+    #   http://dev.mysql.com/doc/refman/5.0/en/old-client.html
+    development:
+      adapter: mysql2
+      encoding: utf8mb4
+      database: test_development
+      pool: 5
+      username: root
+      password:
+      socket: /tmp/mysql.sock
 
-# Warning: The database defined as "test" will be erased and
-# re-generated from your development database when you run "rake".
-# Do not set this db to the same as development or production.
-test:
-  adapter: mysql2
-  encoding: utf8mb4
-  database: test_test
-  pool: 5
-  username: root
-  password:
-  socket: /tmp/mysql.sock
+    # Warning: The database defined as "test" will be erased and
+    # re-generated from your development database when you run "rake".
+    # Do not set this db to the same as development or production.
+    test:
+      adapter: mysql2
+      encoding: utf8mb4
+      database: test_test
+      pool: 5
+      username: root
+      password:
+      socket: /tmp/mysql.sock
 
-production:
-  adapter: mysql2
-  encoding: utf8mb4
-  database: test_production
-  pool: 5
-  username: root
-  password:
-  socket: /tmp/mysql.sock
-```
+    production:
+      adapter: mysql2
+      encoding: utf8mb4
+      database: test_production
+      pool: 5
+      username: root
+      password:
+      socket: /tmp/mysql.sock
 
 ## Use postgresql if you can !
 
