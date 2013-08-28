@@ -4,12 +4,230 @@
  <title>Eric Jones</title>
  <link href="http://pjambet.github.com/atom.xml" rel="self"/>
  <link href="http://pjambet.github.com/"/>
- <updated>2013-07-18T09:29:22-04:00</updated>
+ <updated>2013-08-28T15:09:01-04:00</updated>
  <id>http://pjambet.github.com</id>
  <author>
    <name>Eric Jones</name>
  </author>
 
+ 
+ <entry>
+   <title>Emojis and MySQL</title>
+   <link href="http://pjambet.github.com/blog/emojis-and-mysql"/>
+   <updated>2013-08-28T00:00:00-04:00</updated>
+   <id>http://pjambet.github.com/blog/emojis-and-mysql</id>
+   <content type="html">&lt;p&gt;&lt;strong&gt;tl;dr; MySQL regular UTF8 encoding sucks, you should use UTF8mb4 (or even
+better Postgres !)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h2&gt;Intro&lt;/h2&gt;
+
+&lt;p&gt;In the past few months I had to struggle with MySQL and its crappy UTF8 support,
+so I thought I would sum up my findings here.&lt;/p&gt;
+
+&lt;p&gt;If you&#39;ve seen stuff like&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Mysql::Error: Specified key was too long; max key length is 767 bytes
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;or&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Mysql2::Error: Incorrect string value: &#39;\xF0\x9F\x8F\xA0&#39; for column &#39;body&#39; at row 1 ...
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;then maybe this article can help you.&lt;/p&gt;
+
+&lt;h2&gt;Technical details !&lt;/h2&gt;
+
+&lt;p&gt;Basically, in order to store the whole range of UTF8 characters, each chararacter
+as to be 4 bytes wide. But MySQL, with its default UTF8 encoding will only
+allocate 3 bytes per character.
+This becomes a problem when users try to insert character such as emojis in your
+database.
+That might sound like an edge case, but if your app is an API where users can
+post content through their phones, then it&#39;s really likely some people will add
+emojis.&lt;/p&gt;
+
+&lt;p&gt;If you want a comprehensive guide for migrating your mysql database from utf8 to
+utf8mb4, &lt;a href=&quot;http://mathiasbynens.be/notes/mysql-utf8mb4&quot;&gt;this article&lt;/a&gt; contains
+everything you need.&lt;/p&gt;
+
+&lt;h2&gt;How to use it in Rails and Django&lt;/h2&gt;
+
+&lt;p&gt;Using utf8mb4 is quite straight forward&lt;/p&gt;
+
+&lt;h3&gt;Django example :&lt;/h3&gt;
+
+&lt;p&gt;in your new project :&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$&amp;gt; django-admin.py startproject test
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Simply add the &lt;code&gt;charset&lt;/code&gt; option in the &lt;code&gt;DATABASES&lt;/code&gt; setting :&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;settings.py&lt;/em&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;DATABASES = {
+    &#39;default&#39;: {
+        &#39;ENGINE&#39;: &#39;django.db.backends.mysql&#39;,
+        &#39;NAME&#39;: &#39;test&#39;,
+        &#39;USER&#39;: &#39;test_user&#39;
+        &#39;OPTIONS&#39;: {&#39;charset&#39;: &#39;utf8mb4&#39;},
+        &#39;PASSWORD&#39;: &#39;&#39;,
+        &#39;HOST&#39;: &#39;&#39;,
+        &#39;PORT&#39;: &#39;&#39;,
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And you&#39;re good to go !&lt;/p&gt;
+
+&lt;h4&gt;Caveat&lt;/h4&gt;
+
+&lt;p&gt;There is still a problem with that configuration. Now the maximum length that
+MySQL can index is &lt;code&gt;191&lt;/code&gt; instead of &lt;code&gt;255&lt;/code&gt;.
+That won&#39;t be a problem if you apply this new limit on your models, but some
+libraries, such as celery try to index some column with a 255 max length.&lt;/p&gt;
+
+&lt;p&gt;So if you have &lt;code&gt;djcelery&lt;/code&gt; in your &lt;code&gt;INSTALLED_APPS&lt;/code&gt;, running your migrations
+(&lt;code&gt;python manage.py migrate&lt;/code&gt;) will fail with a nice :&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;django.db.utils.DatabaseError: (1071, &#39;Specified key was too long; max key length is 767 bytes&#39;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The only solution I found so far is to only run migrations on an app per app
+basis.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;python manage.py migrate myapp
+python manage.py migrate anotherapp
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;and for the app that fails, such as &lt;code&gt;djcelery&lt;/code&gt;, first run&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;python manage.py sqall djcelery&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Which should give you and output similar to :&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;BEGIN;
+CREATE TABLE `celery_taskmeta` (
+    `id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    `task_id` varchar(255) NOT NULL UNIQUE,
+    `status` varchar(50) NOT NULL,
+    `result` longtext,
+    `date_done` datetime NOT NULL,
+    `traceback` longtext,
+    `hidden` bool NOT NULL,
+    `meta` longtext
+)
+;
+
+# other CREATE TABLES ...
+
+CREATE INDEX `djcelery_taskstate_c91f1bf` ON `djcelery_taskstate` (`hidden`);
+COMMIT;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Then copy this in your favorite editor (vim, of course !), and specify the
+&lt;code&gt;CHARACTER SET&lt;/code&gt; as &lt;code&gt;utf8&lt;/code&gt; for each table. This should not cause any issues, as
+all the data that is gonna be inserted in those tables controlled by celery
+itself, and there should not be any enojis are other 4 bytes wide characters.&lt;/p&gt;
+
+&lt;p&gt;Then your new file should look like :&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;BEGIN;
+CREATE TABLE `celery_taskmeta` (
+    `id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    `task_id` varchar(255) NOT NULL UNIQUE,
+    `status` varchar(50) NOT NULL,
+    `result` longtext,
+    `date_done` datetime NOT NULL,
+    `traceback` longtext,
+    `hidden` bool NOT NULL,
+    `meta` longtext
+) CHARACTER SET=utf8 # Note the CHARACTER SET explictly set
+;
+
+# ... and the rest
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;PS : I&#39;ve opened &lt;a href=&quot;https://github.com/celery/django-celery/issues/259&quot;&gt;an issue on
+github&lt;/a&gt;, and I am still
+waiting for more information
+about this problem.&lt;/p&gt;
+
+&lt;h3&gt;Rails example :&lt;/h3&gt;
+
+&lt;p&gt;Note that utf8mb4 support in rails is &lt;a href=&quot;https://github.com/rails/rails/issues/9855&quot;&gt;really
+recent&lt;/a&gt;, and is only supported since
+rails 4.0.0&lt;/p&gt;
+
+&lt;p&gt;in your new rails project :&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$&amp;gt; rails new test -d mysql
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;database.yml&lt;/em&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;# MySQL.  Versions 4.1 and 5.0 are recommended.
+#
+# Install the MYSQL driver
+#   gem install mysql2
+#
+# Ensure the MySQL gem is defined in your Gemfile
+#   gem &#39;mysql2&#39;
+#
+# And be sure to use new-style password hashing:
+#   http://dev.mysql.com/doc/refman/5.0/en/old-client.html
+development:
+  adapter: mysql2
+  encoding: utf8mb4
+  database: test_development
+  pool: 5
+  username: root
+  password:
+  socket: /tmp/mysql.sock
+
+# Warning: The database defined as &quot;test&quot; will be erased and
+# re-generated from your development database when you run &quot;rake&quot;.
+# Do not set this db to the same as development or production.
+test:
+  adapter: mysql2
+  encoding: utf8mb4
+  database: test_test
+  pool: 5
+  username: root
+  password:
+  socket: /tmp/mysql.sock
+
+production:
+  adapter: mysql2
+  encoding: utf8mb4
+  database: test_production
+  pool: 5
+  username: root
+  password:
+  socket: /tmp/mysql.sock
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2&gt;Use postgresql if you can !&lt;/h2&gt;
+
+&lt;p&gt;This won&#39;t really help you if you&#39;re stuck with MySQL. In my case, I had to use
+AWS and had to use MySQL. Even if it&#39;s possible to use postgresql on AWS, using
+RDS has many advantages, such as the ease of setup and configuration.&lt;/p&gt;
+
+&lt;p&gt;So if you have the choice, use postgresql ! I haven&#39;t seen any advantages of
+MySQL over postgresql.&lt;/p&gt;
+
+&lt;p&gt;Postgres UTF8 encoding works like a charm (and it should be the same for every
+RDBMS), that means no encoding, collation or index length headaches. It just
+works !&lt;/p&gt;
+
+&lt;p&gt;And of course if you start using posgresql, you&#39;ll discover a bunch of amazing
+features such as &lt;a href=&quot;http://www.postgresql.org/docs/9.1/static/arrays.html&quot;&gt;array
+columns&lt;/a&gt;,
+&lt;a href=&quot;http://www.postgresql.org/docs/9.1/static/hstore.html&quot;&gt;hstore&lt;/a&gt; and many other
+really awesome stuff !&lt;/p&gt;
+</content>
+ </entry>
  
  <entry>
    <title>Beech is finally here</title>
@@ -92,7 +310,7 @@ decided that he didn&#39;t like it.&lt;/p&gt;
 
 &lt;h3&gt;The end&lt;/h3&gt;
 
-&lt;p&gt;Please follow us on twitter (though it&#39;s really calm so far, we will change that soon!), and if you have any questions, remarks, ideas, please send us an email : &lt;a href=&quot;&amp;#x6d;&amp;#x61;&amp;#105;&amp;#x6c;&amp;#x74;&amp;#111;&amp;#x3a;&amp;#99;&amp;#111;&amp;#110;&amp;#x74;&amp;#x61;&amp;#99;&amp;#x74;&amp;#x40;&amp;#103;&amp;#x65;&amp;#x74;&amp;#x62;&amp;#101;&amp;#x65;&amp;#99;&amp;#104;&amp;#x2e;&amp;#99;&amp;#x6f;&amp;#x6d;&quot;&gt;&amp;#99;&amp;#111;&amp;#x6e;&amp;#116;&amp;#97;&amp;#99;&amp;#116;&amp;#x40;&amp;#x67;&amp;#x65;&amp;#116;&amp;#x62;&amp;#x65;&amp;#101;&amp;#99;&amp;#104;&amp;#46;&amp;#x63;&amp;#111;&amp;#109;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Please follow us on twitter (though it&#39;s really calm so far, we will change that soon!), and if you have any questions, remarks, ideas, please send us an email : &lt;a href=&quot;&amp;#x6d;&amp;#97;&amp;#105;&amp;#108;&amp;#x74;&amp;#x6f;&amp;#x3a;&amp;#99;&amp;#111;&amp;#110;&amp;#116;&amp;#97;&amp;#99;&amp;#116;&amp;#64;&amp;#103;&amp;#x65;&amp;#116;&amp;#98;&amp;#101;&amp;#x65;&amp;#x63;&amp;#x68;&amp;#46;&amp;#x63;&amp;#x6f;&amp;#109;&quot;&gt;&amp;#99;&amp;#x6f;&amp;#110;&amp;#116;&amp;#97;&amp;#x63;&amp;#116;&amp;#64;&amp;#103;&amp;#x65;&amp;#x74;&amp;#x62;&amp;#101;&amp;#101;&amp;#x63;&amp;#104;&amp;#46;&amp;#x63;&amp;#111;&amp;#109;&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;Don&#39;t forget, you can download the app here : &lt;a href=&quot;https://itunes.apple.com/fr/app/beech./id607747222?l=en&amp;amp;mt=8&quot;&gt;https://itunes.apple.com/fr/app/beech./id607747222?l=en&amp;amp;mt=8&lt;/a&gt;&lt;/p&gt;
 
