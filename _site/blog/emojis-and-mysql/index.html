@@ -95,23 +95,19 @@
   <div class="row">
     <div class="span9 column">
       <p><strong>tl;dr; MySQL regular UTF8 encoding sucks, you should use UTF8mb4 (or even
-better Postgres !)</strong></p>
+better, Postgres !)</strong></p>
 
 <h2>Intro</h2>
 
 <p>In the past few months I had to struggle with MySQL and its crappy UTF8 support,
 so I thought I would sum up my findings here.</p>
 
-<p>If you've seen stuff like</p>
-
-<pre><code>Mysql::Error: Specified key was too long; max key length is 767 bytes
-</code></pre>
-
+<p>If you&#39;ve seen stuff like</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">Mysql::Error: Specified key was too long; max key length is 767 bytes
+</code></pre></div>
 <p>or</p>
-
-<pre><code>Mysql2::Error: Incorrect string value: '\xF0\x9F\x8F\xA0' for column 'body' at row 1 ...
-</code></pre>
-
+<div class="highlight"><pre><code class="text language-text" data-lang="text">Mysql2::Error: Incorrect string value: &#39;\xF0\x9F\x8F\xA0&#39; for column &#39;body&#39; at row 1 ...
+</code></pre></div>
 <p>then maybe this article can help you.</p>
 
 <h2>Technical details !</h2>
@@ -122,7 +118,7 @@ allocate 3 bytes per character.
 This becomes a problem when users try to insert character such as emojis in your
 database.
 That might sound like an edge case, but if your app is an API where users can
-post content through their phones, then it's really likely some people will add
+post content through their phones, then it&#39;s really likely some people will add
 emojis.</p>
 
 <p>If you want a comprehensive guide for migrating your mysql database from utf8 to
@@ -136,56 +132,47 @@ everything you need.</p>
 <h3>Django example :</h3>
 
 <p>in your new project :</p>
-
-<pre><code>$&gt; django-admin.py startproject test
-</code></pre>
-
+<div class="highlight"><pre><code class="text language-text" data-lang="text">$&gt; django-admin.py startproject test
+</code></pre></div>
 <p>Simply add the <code>charset</code> option in the <code>DATABASES</code> setting :</p>
 
 <p><em>settings.py</em></p>
-
-<pre><code>DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'test',
-        'USER': 'test_user'
-        'OPTIONS': {'charset': 'utf8mb4'},
-        'PASSWORD': '',
-        'HOST': '',
-        'PORT': '',
+<div class="highlight"><pre><code class="text language-text" data-lang="text">DATABASES = {
+    &#39;default&#39;: {
+        &#39;ENGINE&#39;: &#39;django.db.backends.mysql&#39;,
+        &#39;NAME&#39;: &#39;test&#39;,
+        &#39;USER&#39;: &#39;test_user&#39;
+        &#39;OPTIONS&#39;: {&#39;charset&#39;: &#39;utf8mb4&#39;},
+        &#39;PASSWORD&#39;: &#39;&#39;,
+        &#39;HOST&#39;: &#39;&#39;,
+        &#39;PORT&#39;: &#39;&#39;,
     }
 }
-</code></pre>
-
-<p>And you're good to go !</p>
+</code></pre></div>
+<p>And you&#39;re good to go !</p>
 
 <h4>Caveat</h4>
 
 <p>There is still a problem with that configuration. Now the maximum length that
 MySQL can index is <code>191</code> instead of <code>255</code>.
-That won't be a problem if you apply this new limit on your models, but some
+That won&#39;t be a problem if you apply this new limit on your models, but some
 libraries, such as celery try to index some column with a 255 max length.</p>
 
 <p>So if you have <code>djcelery</code> in your <code>INSTALLED_APPS</code>, running your migrations
 (<code>python manage.py migrate</code>) will fail with a nice :</p>
-
-<pre><code>django.db.utils.DatabaseError: (1071, 'Specified key was too long; max key length is 767 bytes')
-</code></pre>
-
+<div class="highlight"><pre><code class="text language-text" data-lang="text">django.db.utils.DatabaseError: (1071, &#39;Specified key was too long; max key length is 767 bytes&#39;)
+</code></pre></div>
 <p>The only solution I found so far is to only run migrations on an app per app
 basis.</p>
-
-<pre><code>python manage.py migrate myapp
+<div class="highlight"><pre><code class="text language-text" data-lang="text">python manage.py migrate myapp
 python manage.py migrate anotherapp
-</code></pre>
-
+</code></pre></div>
 <p>and for the app that fails, such as <code>djcelery</code>, first run</p>
 
 <p><code>python manage.py sqall djcelery</code></p>
 
 <p>Which should give you and output similar to :</p>
-
-<pre><code>BEGIN;
+<div class="highlight"><pre><code class="text language-text" data-lang="text">BEGIN;
 CREATE TABLE `celery_taskmeta` (
     `id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY,
     `task_id` varchar(255) NOT NULL UNIQUE,
@@ -202,16 +189,14 @@ CREATE TABLE `celery_taskmeta` (
 
 CREATE INDEX `djcelery_taskstate_c91f1bf` ON `djcelery_taskstate` (`hidden`);
 COMMIT;
-</code></pre>
-
+</code></pre></div>
 <p>Then copy this in your favorite editor (vim, of course !), and specify the
 <code>CHARACTER SET</code> as <code>utf8</code> for each table. This should not cause any issues, as
 all the data that is gonna be inserted in those tables controlled by celery
 itself, and there should not be any enojis are other 4 bytes wide characters.</p>
 
 <p>Then your new file should look like :</p>
-
-<pre><code>BEGIN;
+<div class="highlight"><pre><code class="text language-text" data-lang="text">BEGIN;
 CREATE TABLE `celery_taskmeta` (
     `id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY,
     `task_id` varchar(255) NOT NULL UNIQUE,
@@ -225,9 +210,8 @@ CREATE TABLE `celery_taskmeta` (
 ;
 
 # ... and the rest
-</code></pre>
-
-<p>PS : I've opened <a href="https://github.com/celery/django-celery/issues/259">an issue on
+</code></pre></div>
+<p>PS : I&#39;ve opened <a href="https://github.com/celery/django-celery/issues/259">an issue on
 github</a>, and I am still
 waiting for more information
 about this problem.</p>
@@ -239,19 +223,16 @@ recent</a>, and is only supported since
 rails 4.0.0</p>
 
 <p>in your new rails project :</p>
-
-<pre><code>$&gt; rails new test -d mysql
-</code></pre>
-
+<div class="highlight"><pre><code class="text language-text" data-lang="text">$&gt; rails new test -d mysql
+</code></pre></div>
 <p><em>database.yml</em></p>
-
-<pre><code># MySQL.  Versions 4.1 and 5.0 are recommended.
+<div class="highlight"><pre><code class="text language-text" data-lang="text"># MySQL.  Versions 4.1 and 5.0 are recommended.
 #
 # Install the MYSQL driver
 #   gem install mysql2
 #
 # Ensure the MySQL gem is defined in your Gemfile
-#   gem 'mysql2'
+#   gem &#39;mysql2&#39;
 #
 # And be sure to use new-style password hashing:
 #   http://dev.mysql.com/doc/refman/5.0/en/old-client.html
@@ -264,8 +245,8 @@ development:
   password:
   socket: /tmp/mysql.sock
 
-# Warning: The database defined as "test" will be erased and
-# re-generated from your development database when you run "rake".
+# Warning: The database defined as &quot;test&quot; will be erased and
+# re-generated from your development database when you run &quot;rake&quot;.
 # Do not set this db to the same as development or production.
 test:
   adapter: mysql2
@@ -284,22 +265,21 @@ production:
   username: root
   password:
   socket: /tmp/mysql.sock
-</code></pre>
-
+</code></pre></div>
 <h2>Use postgresql if you can !</h2>
 
-<p>This won't really help you if you're stuck with MySQL. In my case, I had to use
-AWS and had to use MySQL. Even if it's possible to use postgresql on AWS, using
+<p>This won&#39;t really help you if you&#39;re stuck with MySQL. In my case, I had to use
+AWS and had to use MySQL. Even if it&#39;s possible to use postgresql on AWS, using
 RDS has many advantages, such as the ease of setup and configuration.</p>
 
-<p>So if you have the choice, use postgresql ! I haven't seen any advantages of
+<p>So if you have the choice, use postgresql ! I haven&#39;t seen any advantages of
 MySQL over postgresql.</p>
 
 <p>Postgres UTF8 encoding works like a charm (and it should be the same for every
 RDBMS), that means no encoding, collation or index length headaches. It just
 works !</p>
 
-<p>And of course if you start using posgresql, you'll discover a bunch of amazing
+<p>And of course if you start using posgresql, you&#39;ll discover a bunch of amazing
 features such as <a href="http://www.postgresql.org/docs/9.1/static/arrays.html">array
 columns</a>,
 <a href="http://www.postgresql.org/docs/9.1/static/hstore.html">hstore</a> and many other

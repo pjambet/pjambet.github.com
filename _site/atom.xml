@@ -4,7 +4,7 @@
  <title>Eric Jones</title>
  <link href="http://pjambet.github.com/atom.xml" rel="self"/>
  <link href="http://pjambet.github.com/"/>
- <updated>2013-08-28T15:09:01-04:00</updated>
+ <updated>2013-08-28T15:20:37-04:00</updated>
  <id>http://pjambet.github.com</id>
  <author>
    <name>Eric Jones</name>
@@ -17,23 +17,19 @@
    <updated>2013-08-28T00:00:00-04:00</updated>
    <id>http://pjambet.github.com/blog/emojis-and-mysql</id>
    <content type="html">&lt;p&gt;&lt;strong&gt;tl;dr; MySQL regular UTF8 encoding sucks, you should use UTF8mb4 (or even
-better Postgres !)&lt;/strong&gt;&lt;/p&gt;
+better, Postgres !)&lt;/strong&gt;&lt;/p&gt;
 
 &lt;h2&gt;Intro&lt;/h2&gt;
 
 &lt;p&gt;In the past few months I had to struggle with MySQL and its crappy UTF8 support,
 so I thought I would sum up my findings here.&lt;/p&gt;
 
-&lt;p&gt;If you&#39;ve seen stuff like&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;Mysql::Error: Specified key was too long; max key length is 767 bytes
-&lt;/code&gt;&lt;/pre&gt;
-
+&lt;p&gt;If you&amp;#39;ve seen stuff like&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;text language-text&quot; data-lang=&quot;text&quot;&gt;Mysql::Error: Specified key was too long; max key length is 767 bytes
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;or&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;Mysql2::Error: Incorrect string value: &#39;\xF0\x9F\x8F\xA0&#39; for column &#39;body&#39; at row 1 ...
-&lt;/code&gt;&lt;/pre&gt;
-
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;text language-text&quot; data-lang=&quot;text&quot;&gt;Mysql2::Error: Incorrect string value: &amp;#39;\xF0\x9F\x8F\xA0&amp;#39; for column &amp;#39;body&amp;#39; at row 1 ...
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;then maybe this article can help you.&lt;/p&gt;
 
 &lt;h2&gt;Technical details !&lt;/h2&gt;
@@ -44,7 +40,7 @@ allocate 3 bytes per character.
 This becomes a problem when users try to insert character such as emojis in your
 database.
 That might sound like an edge case, but if your app is an API where users can
-post content through their phones, then it&#39;s really likely some people will add
+post content through their phones, then it&amp;#39;s really likely some people will add
 emojis.&lt;/p&gt;
 
 &lt;p&gt;If you want a comprehensive guide for migrating your mysql database from utf8 to
@@ -58,56 +54,47 @@ everything you need.&lt;/p&gt;
 &lt;h3&gt;Django example :&lt;/h3&gt;
 
 &lt;p&gt;in your new project :&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;$&amp;gt; django-admin.py startproject test
-&lt;/code&gt;&lt;/pre&gt;
-
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;text language-text&quot; data-lang=&quot;text&quot;&gt;$&amp;gt; django-admin.py startproject test
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Simply add the &lt;code&gt;charset&lt;/code&gt; option in the &lt;code&gt;DATABASES&lt;/code&gt; setting :&lt;/p&gt;
 
 &lt;p&gt;&lt;em&gt;settings.py&lt;/em&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;DATABASES = {
-    &#39;default&#39;: {
-        &#39;ENGINE&#39;: &#39;django.db.backends.mysql&#39;,
-        &#39;NAME&#39;: &#39;test&#39;,
-        &#39;USER&#39;: &#39;test_user&#39;
-        &#39;OPTIONS&#39;: {&#39;charset&#39;: &#39;utf8mb4&#39;},
-        &#39;PASSWORD&#39;: &#39;&#39;,
-        &#39;HOST&#39;: &#39;&#39;,
-        &#39;PORT&#39;: &#39;&#39;,
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;text language-text&quot; data-lang=&quot;text&quot;&gt;DATABASES = {
+    &amp;#39;default&amp;#39;: {
+        &amp;#39;ENGINE&amp;#39;: &amp;#39;django.db.backends.mysql&amp;#39;,
+        &amp;#39;NAME&amp;#39;: &amp;#39;test&amp;#39;,
+        &amp;#39;USER&amp;#39;: &amp;#39;test_user&amp;#39;
+        &amp;#39;OPTIONS&amp;#39;: {&amp;#39;charset&amp;#39;: &amp;#39;utf8mb4&amp;#39;},
+        &amp;#39;PASSWORD&amp;#39;: &amp;#39;&amp;#39;,
+        &amp;#39;HOST&amp;#39;: &amp;#39;&amp;#39;,
+        &amp;#39;PORT&amp;#39;: &amp;#39;&amp;#39;,
     }
 }
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;And you&#39;re good to go !&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;And you&amp;#39;re good to go !&lt;/p&gt;
 
 &lt;h4&gt;Caveat&lt;/h4&gt;
 
 &lt;p&gt;There is still a problem with that configuration. Now the maximum length that
 MySQL can index is &lt;code&gt;191&lt;/code&gt; instead of &lt;code&gt;255&lt;/code&gt;.
-That won&#39;t be a problem if you apply this new limit on your models, but some
+That won&amp;#39;t be a problem if you apply this new limit on your models, but some
 libraries, such as celery try to index some column with a 255 max length.&lt;/p&gt;
 
 &lt;p&gt;So if you have &lt;code&gt;djcelery&lt;/code&gt; in your &lt;code&gt;INSTALLED_APPS&lt;/code&gt;, running your migrations
 (&lt;code&gt;python manage.py migrate&lt;/code&gt;) will fail with a nice :&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;django.db.utils.DatabaseError: (1071, &#39;Specified key was too long; max key length is 767 bytes&#39;)
-&lt;/code&gt;&lt;/pre&gt;
-
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;text language-text&quot; data-lang=&quot;text&quot;&gt;django.db.utils.DatabaseError: (1071, &amp;#39;Specified key was too long; max key length is 767 bytes&amp;#39;)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;The only solution I found so far is to only run migrations on an app per app
 basis.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;python manage.py migrate myapp
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;text language-text&quot; data-lang=&quot;text&quot;&gt;python manage.py migrate myapp
 python manage.py migrate anotherapp
-&lt;/code&gt;&lt;/pre&gt;
-
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;and for the app that fails, such as &lt;code&gt;djcelery&lt;/code&gt;, first run&lt;/p&gt;
 
 &lt;p&gt;&lt;code&gt;python manage.py sqall djcelery&lt;/code&gt;&lt;/p&gt;
 
 &lt;p&gt;Which should give you and output similar to :&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;BEGIN;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;text language-text&quot; data-lang=&quot;text&quot;&gt;BEGIN;
 CREATE TABLE `celery_taskmeta` (
     `id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY,
     `task_id` varchar(255) NOT NULL UNIQUE,
@@ -124,16 +111,14 @@ CREATE TABLE `celery_taskmeta` (
 
 CREATE INDEX `djcelery_taskstate_c91f1bf` ON `djcelery_taskstate` (`hidden`);
 COMMIT;
-&lt;/code&gt;&lt;/pre&gt;
-
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Then copy this in your favorite editor (vim, of course !), and specify the
 &lt;code&gt;CHARACTER SET&lt;/code&gt; as &lt;code&gt;utf8&lt;/code&gt; for each table. This should not cause any issues, as
 all the data that is gonna be inserted in those tables controlled by celery
 itself, and there should not be any enojis are other 4 bytes wide characters.&lt;/p&gt;
 
 &lt;p&gt;Then your new file should look like :&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;BEGIN;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;text language-text&quot; data-lang=&quot;text&quot;&gt;BEGIN;
 CREATE TABLE `celery_taskmeta` (
     `id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY,
     `task_id` varchar(255) NOT NULL UNIQUE,
@@ -147,9 +132,8 @@ CREATE TABLE `celery_taskmeta` (
 ;
 
 # ... and the rest
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;PS : I&#39;ve opened &lt;a href=&quot;https://github.com/celery/django-celery/issues/259&quot;&gt;an issue on
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;PS : I&amp;#39;ve opened &lt;a href=&quot;https://github.com/celery/django-celery/issues/259&quot;&gt;an issue on
 github&lt;/a&gt;, and I am still
 waiting for more information
 about this problem.&lt;/p&gt;
@@ -161,19 +145,16 @@ recent&lt;/a&gt;, and is only supported since
 rails 4.0.0&lt;/p&gt;
 
 &lt;p&gt;in your new rails project :&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;$&amp;gt; rails new test -d mysql
-&lt;/code&gt;&lt;/pre&gt;
-
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;text language-text&quot; data-lang=&quot;text&quot;&gt;$&amp;gt; rails new test -d mysql
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;&lt;em&gt;database.yml&lt;/em&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;# MySQL.  Versions 4.1 and 5.0 are recommended.
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;text language-text&quot; data-lang=&quot;text&quot;&gt;# MySQL.  Versions 4.1 and 5.0 are recommended.
 #
 # Install the MYSQL driver
 #   gem install mysql2
 #
 # Ensure the MySQL gem is defined in your Gemfile
-#   gem &#39;mysql2&#39;
+#   gem &amp;#39;mysql2&amp;#39;
 #
 # And be sure to use new-style password hashing:
 #   http://dev.mysql.com/doc/refman/5.0/en/old-client.html
@@ -186,8 +167,8 @@ development:
   password:
   socket: /tmp/mysql.sock
 
-# Warning: The database defined as &quot;test&quot; will be erased and
-# re-generated from your development database when you run &quot;rake&quot;.
+# Warning: The database defined as &amp;quot;test&amp;quot; will be erased and
+# re-generated from your development database when you run &amp;quot;rake&amp;quot;.
 # Do not set this db to the same as development or production.
 test:
   adapter: mysql2
@@ -206,22 +187,21 @@ production:
   username: root
   password:
   socket: /tmp/mysql.sock
-&lt;/code&gt;&lt;/pre&gt;
-
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;h2&gt;Use postgresql if you can !&lt;/h2&gt;
 
-&lt;p&gt;This won&#39;t really help you if you&#39;re stuck with MySQL. In my case, I had to use
-AWS and had to use MySQL. Even if it&#39;s possible to use postgresql on AWS, using
+&lt;p&gt;This won&amp;#39;t really help you if you&amp;#39;re stuck with MySQL. In my case, I had to use
+AWS and had to use MySQL. Even if it&amp;#39;s possible to use postgresql on AWS, using
 RDS has many advantages, such as the ease of setup and configuration.&lt;/p&gt;
 
-&lt;p&gt;So if you have the choice, use postgresql ! I haven&#39;t seen any advantages of
+&lt;p&gt;So if you have the choice, use postgresql ! I haven&amp;#39;t seen any advantages of
 MySQL over postgresql.&lt;/p&gt;
 
 &lt;p&gt;Postgres UTF8 encoding works like a charm (and it should be the same for every
 RDBMS), that means no encoding, collation or index length headaches. It just
 works !&lt;/p&gt;
 
-&lt;p&gt;And of course if you start using posgresql, you&#39;ll discover a bunch of amazing
+&lt;p&gt;And of course if you start using posgresql, you&amp;#39;ll discover a bunch of amazing
 features such as &lt;a href=&quot;http://www.postgresql.org/docs/9.1/static/arrays.html&quot;&gt;array
 columns&lt;/a&gt;,
 &lt;a href=&quot;http://www.postgresql.org/docs/9.1/static/hstore.html&quot;&gt;hstore&lt;/a&gt; and many other
@@ -236,11 +216,11 @@ really awesome stuff !&lt;/p&gt;
    <id>http://pjambet.github.com/blog/beech-is-here</id>
    <content type="html">&lt;p&gt;&lt;strong&gt;tl;dr; Beech is available on the &lt;a href=&quot;http://getbeech.com/&quot; title=&quot;Beech app store&quot;&gt;App Store&lt;/a&gt;, please download it, and use it !&lt;/strong&gt;&lt;/p&gt;
 
-&lt;h2&gt;It&#39;s finally here !&lt;/h2&gt;
+&lt;h2&gt;It&amp;#39;s finally here !&lt;/h2&gt;
 
 &lt;p&gt;Wait is over, after a few months of intense hard work, well actually not that hard and not that intense, &lt;a href=&quot;https://twitter.com/lucchaissac&quot;&gt;@lucchaissac&lt;/a&gt; and I released the first version of Beech.&lt;/p&gt;
 
-&lt;p&gt;The App is registered under my account, that&#39;s why it&#39;s listed as being developped by me, but I can assure you that Luc is also a member of the team.&lt;/p&gt;
+&lt;p&gt;The App is registered under my account, that&amp;#39;s why it&amp;#39;s listed as being developped by me, but I can assure you that Luc is also a member of the team.&lt;/p&gt;
 
 &lt;p&gt;Enough talk, this is what it looks like :&lt;/p&gt;
 
@@ -249,26 +229,24 @@ really awesome stuff !&lt;/p&gt;
   &lt;img class=&quot;img-polaroid&quot; src=&quot;http://f.cl.ly/items/1X1b0o1y3J051u072P1S/help-screen-2@2x.png&quot; title=&quot;Help screen&quot; alt=&quot;help screen 1&quot; width=&quot;225&quot; /&gt;
 &lt;/div&gt;
 
-
-&lt;p&gt;&lt;small&gt;Those images are stolen from the &quot;Welcome tour&quot; that is presented to new users after their login&lt;/small&gt;&lt;/p&gt;
+&lt;p&gt;&lt;small&gt;Those images are stolen from the &amp;quot;Welcome tour&amp;quot; that is presented to new users after their login&lt;/small&gt;&lt;/p&gt;
 
 &lt;h3&gt;Main features&lt;/h3&gt;
 
-&lt;p&gt;One bad news is that the App is only available in French so far. But that will change really soon, I&#39;m currently working on an english version, and will deploy it soon. It should only be a matter of weeks, it depends on my availability. But anyway, I think that the App is simple enough so far that everyone can use it, not need to be a french expert to understand how it works.&lt;/p&gt;
+&lt;p&gt;One bad news is that the App is only available in French so far. But that will change really soon, I&amp;#39;m currently working on an english version, and will deploy it soon. It should only be a matter of weeks, it depends on my availability. But anyway, I think that the App is simple enough so far that everyone can use it, not need to be a french expert to understand how it works.&lt;/p&gt;
 
 &lt;p&gt;The basic features we wanted are available :&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;You can &quot;beech&quot; any beers you like&lt;/li&gt;
-&lt;li&gt;If the beer you love is not in our list, you can suggest it, and we&#39;ll (quickly) review it and validate it&lt;/li&gt;
+&lt;li&gt;You can &amp;quot;beech&amp;quot; any beers you like&lt;/li&gt;
+&lt;li&gt;If the beer you love is not in our list, you can suggest it, and we&amp;#39;ll (quickly) review it and validate it&lt;/li&gt;
 &lt;li&gt;You can earn cool badges based on what you drink&lt;/li&gt;
 &lt;li&gt;You can follow your friends beechs&lt;/li&gt;
 &lt;/ul&gt;
 
-
 &lt;h3&gt;Future improvements&lt;/h3&gt;
 
-&lt;p&gt;Here are the things we&#39;re working on right now to make the app even more awesome&lt;/p&gt;
+&lt;p&gt;Here are the things we&amp;#39;re working on right now to make the app even more awesome&lt;/p&gt;
 
 &lt;ul&gt;
 &lt;li&gt;An english version (of course !)&lt;/li&gt;
@@ -278,14 +256,12 @@ really awesome stuff !&lt;/p&gt;
 &lt;li&gt;And many more features that will pop into our heads in the future&lt;/li&gt;
 &lt;/ul&gt;
 
-
 &lt;div class=&quot;images&quot;&gt;
   &lt;img class=&quot;img-polaroid centered&quot; src=&quot;http://f.cl.ly/items/3j2n1g3V3I2L091Q2r44/help-screen-3@2x.png&quot; title=&quot;Help screen&quot; alt=&quot;help screen 1&quot; width=&quot;225&quot; /&gt;
   &lt;img class=&quot;img-polaroid centered&quot; src=&quot;http://f.cl.ly/items/0p3e0V3G22443g223T0S/help-screen-4@2x.png&quot; title=&quot;Help screen&quot; alt=&quot;help screen 1&quot; width=&quot;225&quot; /&gt;
 &lt;/div&gt;
 
-
-&lt;p&gt;&lt;small&gt;Those images are also stolen from the &quot;Welcome tour&quot; that is presented to new users after their login&lt;/small&gt;&lt;/p&gt;
+&lt;p&gt;&lt;small&gt;Those images are also stolen from the &amp;quot;Welcome tour&amp;quot; that is presented to new users after their login&lt;/small&gt;&lt;/p&gt;
 
 &lt;h3&gt;Working on your own project is fucking awesome&lt;/h3&gt;
 
@@ -294,9 +270,8 @@ really awesome stuff !&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;itunes connect, and in general every thing on the Apple Developer Portal, suck so hard that it is sometimes surrealistic&lt;/li&gt;
 &lt;li&gt;why am I forced to use xcode, seriously the thing is not that bad, but when you use it intensively, it crashes &lt;strong&gt;at least&lt;/strong&gt; once per day. Really ??&lt;/li&gt;
-&lt;li&gt;objective-c ... well I don&#39;t like it, that&#39;s it.&lt;/li&gt;
+&lt;li&gt;objective-c ... well I don&amp;#39;t like it, that&amp;#39;s it.&lt;/li&gt;
 &lt;/ul&gt;
-
 
 &lt;p&gt;Enough about that, the only thing I wanted to say, is that working on your own project is so far one of the best thing I did in my short career, and the reason is simple :&lt;/p&gt;
 
@@ -304,17 +279,17 @@ really awesome stuff !&lt;/p&gt;
 
 &lt;p&gt;What it meant for us is that we were able to implement our designs and our features, whereas when working on client projects, we always ended up changing all our original ideas because
 &lt;i&gt;the client&lt;/i&gt;
-decided that he didn&#39;t like it.&lt;/p&gt;
+decided that he didn&amp;#39;t like it.&lt;/p&gt;
 
-&lt;p&gt;Wanna help us ? The server&#39;s code is on my github account, go check it out if you&#39;re interested on how it works : &lt;a href=&quot;https://github.com/pjambet/beech-server&quot;&gt;https://github.com/pjambet/beech-server&lt;/a&gt;, and you might find some bug/issues and could help me fix them ! And if you want to participate to the development that&#39;s even more awesome !!&lt;/p&gt;
+&lt;p&gt;Wanna help us ? The server&amp;#39;s code is on my github account, go check it out if you&amp;#39;re interested on how it works : &lt;a href=&quot;https://github.com/pjambet/beech-server&quot;&gt;https://github.com/pjambet/beech-server&lt;/a&gt;, and you might find some bug/issues and could help me fix them ! And if you want to participate to the development that&amp;#39;s even more awesome !!&lt;/p&gt;
 
 &lt;h3&gt;The end&lt;/h3&gt;
 
-&lt;p&gt;Please follow us on twitter (though it&#39;s really calm so far, we will change that soon!), and if you have any questions, remarks, ideas, please send us an email : &lt;a href=&quot;&amp;#x6d;&amp;#97;&amp;#105;&amp;#108;&amp;#x74;&amp;#x6f;&amp;#x3a;&amp;#99;&amp;#111;&amp;#110;&amp;#116;&amp;#97;&amp;#99;&amp;#116;&amp;#64;&amp;#103;&amp;#x65;&amp;#116;&amp;#98;&amp;#101;&amp;#x65;&amp;#x63;&amp;#x68;&amp;#46;&amp;#x63;&amp;#x6f;&amp;#109;&quot;&gt;&amp;#99;&amp;#x6f;&amp;#110;&amp;#116;&amp;#97;&amp;#x63;&amp;#116;&amp;#64;&amp;#103;&amp;#x65;&amp;#x74;&amp;#x62;&amp;#101;&amp;#101;&amp;#x63;&amp;#104;&amp;#46;&amp;#x63;&amp;#111;&amp;#109;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Please follow us on twitter (though it&amp;#39;s really calm so far, we will change that soon!), and if you have any questions, remarks, ideas, please send us an email : &lt;a href=&quot;mailto:contact@getbeech.com&quot;&gt;contact@getbeech.com&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;Don&#39;t forget, you can download the app here : &lt;a href=&quot;https://itunes.apple.com/fr/app/beech./id607747222?l=en&amp;amp;mt=8&quot;&gt;https://itunes.apple.com/fr/app/beech./id607747222?l=en&amp;amp;mt=8&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Don&amp;#39;t forget, you can download the app here : &lt;a href=&quot;https://itunes.apple.com/fr/app/beech./id607747222?l=en&amp;amp;mt=8&quot;&gt;https://itunes.apple.com/fr/app/beech./id607747222?l=en&amp;amp;mt=8&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;strong&gt;One last thing, please go check out Luc&#39;s job on &lt;a href=&quot;http://dribbble.com/lucchaissac&quot;&gt;Dribbble&lt;/a&gt;, or his &lt;a href=&quot;http://lucchaissac.com/portfolio.html&quot;&gt;portfolio&lt;/a&gt;, it&#39;s really awesome ! (and not he didn&#39;t bribe me so I say that !)&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;One last thing, please go check out Luc&amp;#39;s job on &lt;a href=&quot;http://dribbble.com/lucchaissac&quot;&gt;Dribbble&lt;/a&gt;, or his &lt;a href=&quot;http://lucchaissac.com/portfolio.html&quot;&gt;portfolio&lt;/a&gt;, it&amp;#39;s really awesome ! (and not he didn&amp;#39;t bribe me so I say that !)&lt;/strong&gt;&lt;/p&gt;
 </content>
  </entry>
  
@@ -323,7 +298,7 @@ decided that he didn&#39;t like it.&lt;/p&gt;
    <link href="http://pjambet.github.com/blog/beech-app"/>
    <updated>2012-11-19T00:00:00-05:00</updated>
    <id>http://pjambet.github.com/blog/beech-app</id>
-   <content type="html">&lt;p&gt;&lt;div class=&quot;row&quot;&gt;
+   <content type="html">&lt;div class=&quot;row&quot;&gt;
     &lt;div class=&quot;span9 columns&quot;&gt;
 &lt;p&gt;&lt;em&gt;Note: This news is delivered with love by &lt;a href=&quot;http://lucchaissac.com/&quot; title=&quot;Luc Chaissac&quot; target=&quot;_blank&quot;&gt;Luc Chaissac&lt;/a&gt; &amp;amp; &lt;a href=&quot;http://pjambet.github.com/&quot; title=&quot;Pierre Jambet&quot; target=&quot;_blank&quot;&gt;Pierre Jambet&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
 &lt;p&gt;Good morning! We have some exciting news for all the beer lovers out there. For quite a long time we’ve been waiting for the perfect idea that would give birth to the app of our dreams. Basically: Intuitive, fluid &amp;amp; attractive.&lt;/p&gt;
@@ -333,50 +308,50 @@ decided that he didn&#39;t like it.&lt;/p&gt;
 &lt;p&gt;We’re just finishing our 24h kick off session, and we’ll do that kind of intense non-stop design/coding again and again until beech works flawlessly.&lt;/p&gt;
 &lt;p&gt;Handcrafted in bordeaux by beer lovers for beer lovers.&lt;/p&gt;
   &lt;div&gt;
-&lt;/div&gt;&lt;/p&gt;
+&lt;/div&gt;
 
-&lt;p&gt;&lt;div class=&quot;row&quot;&gt;
+&lt;div class=&quot;row&quot;&gt;
     &lt;div class=&quot;span9 column&quot;&gt;
             &lt;p class=&quot;pull-right&quot;&gt; &lt;a href=&quot;/blog/direct-upload-to-s3&quot; title=&quot;Previous Post: Direct upload to s3 with cors&quot;&gt;&lt;i class=&quot;icon-chevron-left&quot;&gt;&lt;/i&gt;&lt;/a&gt;           &lt;a href=&quot;/blog/beech-is-here&quot; title=&quot;Next Post: Beech is finally here&quot;&gt;&lt;i class=&quot;icon-chevron-right&quot;&gt;&lt;/i&gt;&lt;/a&gt;    &lt;/p&gt;
     &lt;/div&gt;
-&lt;/div&gt;&lt;/p&gt;
+&lt;/div&gt;
 
-&lt;p&gt;&lt;div class=&quot;row&quot;&gt;
+&lt;div class=&quot;row&quot;&gt;
     &lt;div class=&quot;span9 columns&quot;&gt;
         &lt;h2&gt;Comments Section&lt;/h2&gt;
         &lt;p&gt;Feel free to comment on the post but keep it clean and on topic.&lt;/p&gt;
         &lt;div id=&quot;disqus_thread&quot;&gt;&lt;/div&gt;
         &lt;script type=&quot;text/javascript&quot;&gt;
-            /&lt;em&gt; * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * &lt;/em&gt;/
+            /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
             var disqus_shortname = &#39;githubpagepjambet&#39;; // required: replace example with your forum shortname
             var disqus_identifier = &#39;/blog/beech-app&#39;;
-            var disqus_url = &#39;http://pjambet.github.com/blog/beech-app&#39;;&lt;/p&gt;
+            var disqus_url = &#39;http://pjambet.github.com/blog/beech-app&#39;;
 
-&lt;pre&gt;&lt;code&gt;        /* * * DON&#39;T EDIT BELOW THIS LINE * * */
-        (function() {
-            var dsq = document.createElement(&#39;script&#39;); dsq.type = &#39;text/javascript&#39;; dsq.async = true;
-            dsq.src = &#39;http://&#39; + disqus_shortname + &#39;.disqus.com/embed.js&#39;;
-            (document.getElementsByTagName(&#39;head&#39;)[0] || document.getElementsByTagName(&#39;body&#39;)[0]).appendChild(dsq);
-        })();
-    &amp;lt;/script&amp;gt;
-    &amp;lt;noscript&amp;gt;Please enable JavaScript to view the &amp;lt;a href=&quot;http://disqus.com/?ref_noscript&quot;&amp;gt;comments powered by Disqus.&amp;lt;/a&amp;gt;&amp;lt;/noscript&amp;gt;
-    &amp;lt;a href=&quot;http://disqus.com&quot; class=&quot;dsq-brlink&quot;&amp;gt;blog comments powered by &amp;lt;span class=&quot;logo-disqus&quot;&amp;gt;Disqus&amp;lt;/span&amp;gt;&amp;lt;/a&amp;gt;
-&amp;lt;/div&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;
+            /* * * DON&#39;T EDIT BELOW THIS LINE * * */
+            (function() {
+                var dsq = document.createElement(&#39;script&#39;); dsq.type = &#39;text/javascript&#39;; dsq.async = true;
+                dsq.src = &#39;http://&#39; + disqus_shortname + &#39;.disqus.com/embed.js&#39;;
+                (document.getElementsByTagName(&#39;head&#39;)[0] || document.getElementsByTagName(&#39;body&#39;)[0]).appendChild(dsq);
+            })();
+        &lt;/script&gt;
+        &lt;noscript&gt;Please enable JavaScript to view the &lt;a href=&quot;http://disqus.com/?ref_noscript&quot;&gt;comments powered by Disqus.&lt;/a&gt;&lt;/noscript&gt;
+        &lt;a href=&quot;http://disqus.com&quot; class=&quot;dsq-brlink&quot;&gt;blog comments powered by &lt;span class=&quot;logo-disqus&quot;&gt;Disqus&lt;/span&gt;&lt;/a&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
 
-&lt;p&gt;&lt;/div&gt;&lt;/p&gt;
+&lt;!-- Twitter --&gt;
 
-&lt;p&gt;&lt;!-- Twitter --&gt;
-&lt;script&gt;!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=&quot;//platform.twitter.com/widgets.js&quot;;fjs.parentNode.insertBefore(js,fjs);}}(document,&quot;script&quot;,&quot;twitter-wjs&quot;);&lt;/script&gt;&lt;/p&gt;
+&lt;script&gt;!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=&quot;//platform.twitter.com/widgets.js&quot;;fjs.parentNode.insertBefore(js,fjs);}}(document,&quot;script&quot;,&quot;twitter-wjs&quot;);&lt;/script&gt;
 
-&lt;p&gt;&lt;!-- Google + --&gt;
+&lt;!-- Google + --&gt;
+
 &lt;script type=&quot;text/javascript&quot;&gt;
   (function() {
     var po = document.createElement(&#39;script&#39;); po.type = &#39;text/javascript&#39;; po.async = true;
     po.src = &#39;https://apis.google.com/js/plusone.js&#39;;
     var s = document.getElementsByTagName(&#39;script&#39;)[0]; s.parentNode.insertBefore(po, s);
   })();
-&lt;/script&gt;&lt;/p&gt;
+&lt;/script&gt;
 </content>
  </entry>
  
@@ -620,17 +595,11 @@ decided that he didn&#39;t like it.&lt;/p&gt;
     &lt;/div&gt;
 &lt;/div&gt;
 
-
-
-
 &lt;div class=&quot;row&quot;&gt;
     &lt;div class=&quot;span9 column&quot;&gt;
             &lt;p class=&quot;pull-right&quot;&gt;      &lt;a href=&quot;/blog/beech-app&quot; title=&quot;Next Post: New revolutionnary app coming soon&quot;&gt;&lt;i class=&quot;icon-chevron-right&quot;&gt;&lt;/i&gt;&lt;/a&gt;   &lt;/p&gt;
     &lt;/div&gt;
 &lt;/div&gt;
-
-
-
 
 &lt;div class=&quot;row&quot;&gt;
     &lt;div class=&quot;span9 columns&quot;&gt;
@@ -655,19 +624,11 @@ decided that he didn&#39;t like it.&lt;/p&gt;
     &lt;/div&gt;
 &lt;/div&gt;
 
-
-
-
 &lt;!-- Twitter --&gt;
-
 
 &lt;script&gt;!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=&quot;//platform.twitter.com/widgets.js&quot;;fjs.parentNode.insertBefore(js,fjs);}}(document,&quot;script&quot;,&quot;twitter-wjs&quot;);&lt;/script&gt;
 
-
-
-
 &lt;!-- Google + --&gt;
-
 
 &lt;script type=&quot;text/javascript&quot;&gt;
   (function() {
@@ -676,7 +637,6 @@ decided that he didn&#39;t like it.&lt;/p&gt;
     var s = document.getElementsByTagName(&#39;script&#39;)[0]; s.parentNode.insertBefore(po, s);
   })();
 &lt;/script&gt;
-
 </content>
  </entry>
  
