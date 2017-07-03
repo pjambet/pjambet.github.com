@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Atomic
+title: Atomic increment/decrement operations in SQL (and fun with locks)
 category: SQL
 tags: sql
 year: 2017
