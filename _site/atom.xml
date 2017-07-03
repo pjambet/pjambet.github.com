@@ -4,7 +4,7 @@
  <title>Eric Jones</title>
  <link href="http://pjambet.github.com/atom.xml" rel="self"/>
  <link href="http://pjambet.github.com/"/>
- <updated>2017-07-03T14:55:27+02:00</updated>
+ <updated>2017-07-03T15:02:51+02:00</updated>
  <id>http://pjambet.github.com</id>
  <author>
    <name>Eric Jones</name>
@@ -12,11 +12,11 @@
 
  
  <entry>
-   <title>Atomic</title>
+   <title>Atomic increment/decrement operations in SQL (and fun with locks)</title>
    <link href="http://pjambet.github.com/blog/atomic-operations-in-sql"/>
    <updated>2017-06-03T00:00:00+02:00</updated>
    <id>http://pjambet.github.com/blog/atomic-operations-in-sql</id>
-   <content type="html">&lt;p&gt;&lt;strong&gt;This is a x-Post from &lt;a href=&quot;http://engineering.harrys.com/2017/06/28/atomic-operations-in-sql.html&quot;&gt;Harry&amp;#39;s tech blog&lt;/a&gt;.&lt;/strong&gt;&lt;/p&gt;
+   <content type="html">&lt;p&gt;&lt;strong&gt;This is a x-post from &lt;a href=&quot;http://engineering.harrys.com/2017/06/28/atomic-operations-in-sql.html&quot;&gt;Harry&amp;#39;s tech blog&lt;/a&gt;.&lt;/strong&gt;&lt;/p&gt;
 
 &lt;p&gt;&lt;strong&gt;tl;dr; SQL supports atomic increment and decrement operations on numeric columns. The &amp;quot;trick&amp;quot; is to use an update
 query following a specific pattern using a relative right hand side value.&lt;/strong&gt;&lt;/p&gt;
