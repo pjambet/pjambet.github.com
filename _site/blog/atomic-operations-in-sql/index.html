@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Atomic</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <meta name="description" content="" />
+    
+    <meta name="author" content="Pierre Jambet">
+    <link href="/css/bootstrap.css" rel="stylesheet">
+    <link href="/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/css/docs.css" rel="stylesheet">
+    <link href="/css/3rd_party/pygments/default.css" rel="stylesheet">
+    <link href="/js/google-code-prettify/prettify.css" rel="stylesheet">
+	<link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body data-spy="scroll" data-target=".subnav" data-offset="50">
+	<div class="navbar navbar-fixed-top">
+  <div class="navbar-inner">
+	<div class="container">
+	  <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+		<span class="icon-bar"></span>
+		<span class="icon-bar"></span>
+		<span class="icon-bar"></span>
+	  </a>
+	  <a class="brand" href="http://pjambet.github.com">Another developer blog</a>
+	  <div class="nav-collapse">
+		<ul class="nav">
+		  <li class="">
+			<a href="http://pjambet.github.com"><i class="icon-home"></i> Home</a>
+		  </li>
+		  <li class="dropdown">
+			<a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="icon-comment"></i> Social <b class="caret"></b></a>
+				<ul class="dropdown-menu">
+					<li class=""><a href="http://www.twitter.com/pierre_jambet" rel="tooltip" title="Go to twitter.com/pierre_jambet" target="_blank">Twitter</a></li>
+					<li class=""><a href="http://github.com/pjambet" rel="tooltip" title="Go to github.com/pjambet" target="_blank">GitHub</a></li>
+					<li class=""><a href="http://www.linkedin.com/profile/view?id=156041350" rel="tooltip" title="Go to LinkedIn profile" target="_blank">LinkedIn</a></li>
+					<li class=""><a href="http://coderwall.com/pjambet" rel="tooltip" title="Go to coderwall/pjambet" target="_blank">Coderwall</a></li>
+					<li class="divider"></li>
+				</ul>
+			 </li>
+		<li class="dropdown">
+			<a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="icon-list"></i> Projects <b class="caret"></b></a>
+				<ul class="dropdown-menu">
+					<li class=""><a href="https://github.com/pjambet/beech-server" rel="tooltip" title="Beech" target="_blank">Beech</a></li>
+				</ul>
+			 </li>
+		</ul>
+	  </div>
+	</div>
+  </div>
+</div>
+
+	<div class="container">
+		<div class="marketing">
+		<div class="content">
+	<script type="text/javascript">
+		/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+		var disqus_shortname = 'githubpagepjambet'; // required: replace example with your forum shortname
+		var disqus_identifier = '/blog/atomic-operations-in-sql';
+		var disqus_url = 'http://pjambet.github.com/blog/atomic-operations-in-sql';
+
+		/* * * DON'T EDIT BELOW THIS LINE * * */
+		(function () {
+			var s = document.createElement('script'); s.async = true;
+			s.type = 'text/javascript';
+			s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
+			(document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+		}());
+	</script>
+
+<div class="row">
+	<div class="span9 column">
+		<p><h1>Atomic</h1></p>
+	</div>
+</div>
+<div class="row">
+	<div class="span3 column">
+		<h5><strong>June  3, 2017 <small>. SQL . <a href="http://pjambet.github.com/blog/atomic-operations-in-sql#disqus_thread" data-disqus-identifier="/blog/atomic-operations-in-sql">Comments</a></small></strong>
+		<br/><small>Tags:  <a href="/tags/sql" title="View posts tagged with &quot;sql&quot;"><u>sql</u></a>    </small><br/><br/>
+		<a href="https://twitter.com/share" class="twitter-share-button" data-via="pierre_jambet">Tweet</a> <g:plusone size="medium"></g:plusone></h5>
+	</div>
+	<div class="span6 column">
+		<p class="pull-right"> <a href="/blog/emojis-and-mysql" title="Previous Post: Emojis and MySQL"><i class="icon-chevron-left"></i></a> 	    </p>
+	</div>
+</div>
+<div class="row">
+	<div class="span9 column">
+		<hr>
+	</div>
+</div>
+
+
+  <div class="row">
+    <div class="span9 column">
+      <p><strong>This is a x-Post from <a href="http://engineering.harrys.com/2017/06/28/atomic-operations-in-sql.html">Harry&#39;s tech blog</a>.</strong></p>
+
+<p><strong>tl;dr; SQL supports atomic increment and decrement operations on numeric columns. The &quot;trick&quot; is to use an update
+query following a specific pattern using a relative right hand side value.</strong></p>
+
+<h1>Intro</h1>
+
+<p>At Harry&#39;s we recently rewrote our inventory management system and managed to improve the performance while reducing the
+operational complexity by taking advantage of native SQL increment &amp; decrement operations.
+In this post we&#39;ll dive into the details and common gotchas of these operations and we&#39;ll compare our new
+implementation with the previous one to highlight the benefits.</p>
+
+<h1>Atomic increment/decrement operations in SQL (and fun with locks)</h1>
+
+<p>SQL supports atomic increment and decrement operations on numeric columns. The &quot;trick&quot; is to use an update query based
+on the following pattern:</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">-- This assumes the existence of a table defined as:
+-- CREATE TABLE test(id SERIAL PRIMARY KEY, x INTEGER);
+UPDATE test set x = x - 1 where id = 1;
+</code></pre></div>
+<p>There are two important elements in this query:</p>
+
+<ul>
+<li>The <code>WHERE</code> clause has to be deterministic (more on that <a href="#condition">later</a>).</li>
+<li>The right hand side of the update statement is using the relative value instead of passing an absolute, preselected
+value (also more on that <a href="#rhs">later</a>).</li>
+</ul>
+
+<p>The <a href="https://www.postgresql.org/docs/9.6/static/transaction-iso.html#XACT-READ-COMMITTED">PostgreSQL documentation</a> has
+a good example.</p>
+
+<h2>Deadlock risk</h2>
+
+<p>It is important to note that since the <code>UPDATE</code> query will implicitly use a row level lock, a deadlock can happen if
+multiple transactions are running with the isolation level set as <code>READ COMMITTED</code>, <code>REPEATABLE READ</code> or <code>SERIALIZABLE</code>.</p>
+
+<h3>Example</h3>
+
+<p>Let&#39;s insert two rows in the <code>test</code> table.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">insert into test values (1, 0);
+insert into test values (2, 0);
+</code></pre></div>
+<p>We can trigger a deadlock with two <code>psql</code> sessions:</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">$1&gt; psql
+psql1&gt; BEGIN;
+psql1&gt; UPDATE test SET x = x + 1 WHERE id = 1; -- A lock is acquired on the row with id 1, no other transactions can update it
+</code></pre></div><div class="highlight"><pre><code class="text language-text" data-lang="text">$2&gt; psql
+psql2&gt; BEGIN;
+psql2&gt; UPDATE test SET x = x + 1 WHERE id = 2; -- A lock is acquired on the row with id 2, no other transactions can update it
+</code></pre></div><div class="highlight"><pre><code class="text language-text" data-lang="text">psql1&gt; UPDATE test SET x = x + 1 WHERE id = 2; -- The second session hasn&#39;t committed yet, this operation is now waiting
+</code></pre></div><div class="highlight"><pre><code class="text language-text" data-lang="text">psql2&gt; UPDATE test SET x = x + 1 WHERE id = 1; -- The first session hasn&#39;t committed yet, this operation is now waiting
+</code></pre></div>
+<p>DEADLOCK! Each session is waiting for the other one to commit or rollback:</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">ERROR:  deadlock detected
+DETAIL:  Process 14803 waits for ShareLock on transaction 43356; blocked by process 14431.
+Process 14431 waits for ShareLock on transaction 43357; blocked by process 14803.
+HINT:  See server log for query details.
+CONTEXT:  while updating tuple (0,1) in relation &quot;test&quot;
+</code></pre></div>
+<p>PostgreSQL automatically detects the situation after a few seconds and will automatically roll back one of the
+transactions, allowing the other one to commit successfully.</p>
+
+<p><em>Note: This situation will happen with all transaction isolation levels</em></p>
+
+<h3>Solution</h3>
+
+<p>One way to prevent this is to use a deterministic ordering when multiple rows are updated in the transations, in this
+case, if both transactions had sorted the rows by ascending id for instance, there wouldn&#39;t have been any deadlocks.</p>
+
+<h2><a id="condition"></a>Deterministic Condition</h2>
+
+<p>As explained in the PostgreSQL documentation, what makes the increment query safe with a transaction using the <code>READ
+COMMITTED</code> isolation level is the determinism of the condition used in the <code>WHERE</code> clause of the <code>UPDATE</code> query.</p>
+
+<p>Let&#39;s look at what can happen with a less trivial query:</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">$1&gt; psql
+psql1&gt; BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+psql1&gt; UPDATE test SET x = x + 1 WHERE id = 2; -- A lock is acquired on the row with id 2, no other transaction can update it
+</code></pre></div><div class="highlight"><pre><code class="text language-text" data-lang="text">$2&gt; psql
+psql2&gt; BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+psql2&gt; UPDATE test set x = x + 1 WHERE x % 2 = 0;
+-- A lock is acquired on all rows with an even x value, since there&#39;s a lock on the row with id 2, this query waits for
+-- the first transaction to commit or rollback
+</code></pre></div><div class="highlight"><pre><code class="text language-text" data-lang="text">psql1&gt; UPDATE test set x = x + 1 WHERE x % 2 = 0;
+</code></pre></div>
+<p>This creates another deadlock situation.</p>
+
+<p>The bottom line is: as long as you&#39;re using an equality condition on a primary key (or an immutable column) then there
+isn&#39;t much to worry about. If you don&#39;t... well, it&#39;s hard to tell what could happen.</p>
+
+<p><em>Note: Using a restrictive isolation level such as REPEATABLE READ or SERIALIZABLE might actually make things more
+complicated as the application code would need to handle serialization failures with some sort of retry logic. There are
+examples in the code section at the bottom of the article</em></p>
+
+<h2><a id="rhs"></a>Relative right hand side value</h2>
+
+<p>The new value passed to the <code>UPDATE</code> query doesn&#39;t know what the current value is, and this is what makes this query
+work, it&#39;ll simply increment the value (after acquiring a lock on the row) to whatever it was plus or minus the given
+difference.</p>
+
+<p>If we were to read the value first and use it to compute the new value, we would need to rely on a more complex locking
+mechanism to ensure that the value won&#39;t change after we read it and before the <code>UPDATE</code> is done.</p>
+
+<h2>Real world example</h2>
+
+<p>It is common for e-commerce companies to keep track of inventories for each SKU
+sold on the platform, a simple inventory table could be defined as:</p>
+<div class="highlight"><pre><code class="sql language-sql" data-lang="sql"><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">inventories</span><span class="p">(</span><span class="n">sku</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span> <span class="n">quantity</span> <span class="nb">INTEGER</span><span class="p">);</span>
+</code></pre></div>
+<p>A simplified version of our inventory system works as follows:</p>
+
+<ul>
+<li>Get all the SKUs in the cart</li>
+<li>Sort the SKUs by lexicographic order (to prevent deadlocks)</li>
+<li>Issue a query looking like <code>UPDATE inventories SET quantity = quantity - x WHERE sku = y RETURNING quantity</code>, where x
+is the requested quantity and y is the actual SKU value. If the returned quantity is too low, an error is thrown and
+the purchase process is aborted.</li>
+</ul>
+
+<h3>Our original (over-engineered) solution</h3>
+
+<p>A few years ago, when we wrote one of the first versions of our inventory system at Harry&#39;s, we didn&#39;t realize that we
+could rely on SQL only to issue atomic decrement operations, we ended up using Redis.</p>
+
+<p>Redis supports such operations out of the box (<a href="https://redis.io/commands/incr"><code>INCR</code></a>
+/ <a href="https://redis.io/commands/incrby"><code>INCRBY</code></a> &amp; <a href="https://redis.io/commands/decr"><code>DECR</code></a>
+/ <a href="https://redis.io/commands/decrby"><code>DECRBY</code></a>), and being single threaded, doesn&#39;t expose any race conditions by
+default.</p>
+
+<p>It is definitely a valid implementation (and it worked well for a long time), but it adds a significant operational cost
+to the implementation as the inventory data &quot;lives&quot; in two different data stores: Redis and PostgreSQL.</p>
+
+<p>The implementation can be summarized as:</p>
+
+<ul>
+<li>We need to decrement the inventory for SKU x</li>
+<li>Is the value in Redis?</li>
+<li>If not, read it from the DB and set in Redis</li>
+<li>Decrement in Redis</li>
+<li>Check the new value, abort if it is too low</li>
+</ul>
+
+<h2>Example code</h2>
+
+<p>I wrote a <a href="https://gist.github.com/pjambet/2d1cbf68b0846a04302505367ce42a9e">small test suite</a> (for both MySQL and
+PostgreSQL) in Ruby highlighting the different concepts mentioned in this article</p>
+
+<ul>
+<li>The &quot;safety&quot; of a relative update query, even in read uncommitted transactions</li>
+<li>The issue with absolute updates in <code>READ UNCOMMITTED</code> and <code>READ COMMITTED</code> transactions</li>
+<li>An example using <code>REPEATABLE READ</code> or <code>SERIALIZABLE</code> transactions that requires the application to explicitly handle
+retries for serialization errors.</li>
+</ul>
+
+<div class="row">
+	<div class="span9 column">
+			<p class="pull-right"> <a href="/blog/emojis-and-mysql" title="Previous Post: Emojis and MySQL"><i class="icon-chevron-left"></i></a> 	    </p>
+	</div>
+</div>
+
+<div class="row">
+    <div class="span9 columns">
+		<h2>Comments Section</h2>
+	    <p>Feel free to comment on the post but keep it clean and on topic.</p>
+		<div id="disqus_thread"></div>
+		<script type="text/javascript">
+			/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+			var disqus_shortname = 'githubpagepjambet'; // required: replace example with your forum shortname
+			var disqus_identifier = '/blog/atomic-operations-in-sql';
+			var disqus_url = 'http://pjambet.github.com/blog/atomic-operations-in-sql';
+
+			/* * * DON'T EDIT BELOW THIS LINE * * */
+			(function() {
+				var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+				dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+				(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+			})();
+		</script>
+		<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+		<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+	</div>
+</div>
+
+<!-- Twitter -->
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+<!-- Google + -->
+<script type="text/javascript">
+  (function() {
+    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+    po.src = 'https://apis.google.com/js/plusone.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+  })();
+</script>
+    </div>
+  </div>
+</div>
+
+
+		</div>
+	 </div>
+	<footer class="footer">
+  <div class="container">
+	<p class="pull-right"> <a href="/blog/emojis-and-mysql" title="Previous Post: Emojis and MySQL">&laquo; Previous Blog Post</a> 	  |  <a href="#">Back to top</a>  |   </p>
+	<p>Page last generated on July  3, 2017</p>
+	<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+  </div>
+</footer>
+
+    <script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
+    <script src="/js/jquery.js"></script>
+    <script src="/js/google-code-prettify/prettify.js"></script>
+    <script src="/js/bootstrap-transition.js"></script>
+    <script src="/js/bootstrap-alert.js"></script>
+    <script src="/js/bootstrap-modal.js"></script>
+    <script src="/js/bootstrap-dropdown.js"></script>
+    <script src="/js/bootstrap-scrollspy.js"></script>
+    <script src="/js/bootstrap-tab.js"></script>
+    <script src="/js/bootstrap-tooltip.js"></script>
+    <script src="/js/bootstrap-popover.js"></script>
+    <script src="/js/bootstrap-button.js"></script>
+    <script src="/js/bootstrap-collapse.js"></script>
+    <script src="/js/bootstrap-carousel.js"></script>
+    <script src="/js/bootstrap-typeahead.js"></script>
+    <script src="/js/application.js"></script>
+	<script src="/js/custom.js" type="text/javascript"></script>
+
+	<script type="text/javascript">
+		/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+		var disqus_shortname = 'githubpagepjambet'; // required: replace example with your forum shortname
+
+		/* * * DON'T EDIT BELOW THIS LINE * * */
+		(function () {
+			var s = document.createElement('script'); s.async = true;
+			s.type = 'text/javascript';
+			s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
+			(document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+		}());
+	</script>
+
+	<!-- Google Analytics -->
+	<script type="text/javascript">
+
+	  var _gaq = _gaq || [];
+	  _gaq.push(['_setAccount', 'UA-35058499-1']);
+	  _gaq.push(['_trackPageview']);
+
+    setTimeout("_gaq.push(['_trackEvent', '15_seconds', 'read'])", 15000);
+
+	  (function() {
+		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	  })();
+
+	</script>
+  </body>
+</html>

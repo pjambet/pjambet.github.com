@@ -127,7 +127,7 @@
         <p>One solution would be to directly write the content of all those variables in the form, so it's ready to be submitted, but I believe that most of those value should not be written in the DOM. So we'll create a new route we'll use to fetch those data.</p>
     <p>This example is written with Rails, but writing the same for another framework should be really simple</p>
     
-<div class="highlight"><pre><code class="ruby">    <span class="ss">MyApp</span><span class="p">:</span><span class="ss">:Application</span><span class="o">.</span><span class="n">routes</span><span class="o">.</span><span class="n">draw</span> <span class="k">do</span>
+<div class="highlight"><pre><code class="ruby">    <span class="no">MyApp</span><span class="o">::</span><span class="no">Application</span><span class="o">.</span><span class="n">routes</span><span class="o">.</span><span class="n">draw</span> <span class="k">do</span>
       <span class="n">resources</span> <span class="ss">:signed_url</span><span class="p">,</span> <span class="ss">only</span><span class="p">:</span> <span class="ss">:index</span>
     <span class="k">end</span>
     
@@ -167,8 +167,8 @@
       <span class="c1"># sign our request by Base64 encoding the policy document.</span>
       <span class="k">def</span> <span class="nf">s3_upload_signature</span>
         <span class="no">Base64</span><span class="o">.</span><span class="n">encode64</span><span class="p">(</span>
-          <span class="ss">OpenSSL</span><span class="p">:</span><span class="ss">:HMAC</span><span class="o">.</span><span class="n">digest</span><span class="p">(</span>
-            <span class="ss">OpenSSL</span><span class="p">:</span><span class="ss">:Digest</span><span class="o">::</span><span class="no">Digest</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">&#39;sha1&#39;</span><span class="p">),</span>
+          <span class="no">OpenSSL</span><span class="o">::</span><span class="no">HMAC</span><span class="o">.</span><span class="n">digest</span><span class="p">(</span>
+            <span class="no">OpenSSL</span><span class="o">::</span><span class="no">Digest</span><span class="o">::</span><span class="no">Digest</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">&#39;sha1&#39;</span><span class="p">),</span>
             <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;AWS_SECRET_KEY_ID&#39;</span><span class="o">]</span><span class="p">,</span>
             <span class="n">s3_upload_policy_document</span>
           <span class="p">)</span>
@@ -291,8 +291,8 @@
     <span class="c1"># This will give you the last part of the URL, the &#39;key&#39; params you need</span>
     <span class="c1"># but it&#39;s URL encoded, so you&#39;ll need to decode it</span>
     <span class="n">object_key</span> <span class="o">=</span> <span class="n">parent_url</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sr">/\//</span><span class="p">)</span><span class="o">.</span><span class="n">last</span>
-    <span class="ss">AWS</span><span class="p">:</span><span class="ss">:S3</span><span class="o">::</span><span class="no">S3Object</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span>
-      <span class="ss">CGI</span><span class="p">:</span><span class="ss">:unescape</span><span class="p">(</span><span class="n">object_key</span><span class="p">),</span>
+    <span class="no">AWS</span><span class="o">::</span><span class="no">S3</span><span class="o">::</span><span class="no">S3Object</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span>
+      <span class="no">CGI</span><span class="o">::</span><span class="n">unescape</span><span class="p">(</span><span class="n">object_key</span><span class="p">),</span>
       <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;S3_BUCKET&#39;</span><span class="o">]</span><span class="p">,</span>
       <span class="n">use_ssl</span><span class="p">:</span> <span class="kp">true</span><span class="p">)</span>
   <span class="k">end</span>
@@ -422,7 +422,7 @@
 	<footer class="footer">
   <div class="container">
 	<p class="pull-right">  |  <a href="#">Back to top</a>  |   	<a href="/blog/beech-app" title="Next Post: New revolutionnary app coming soon">Next Blog Post &raquo; </a> 	 </p>
-	<p>Page last generated on August 28, 2013</p>
+	<p>Page last generated on July  3, 2017</p>
 	<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
   </div>
 </footer>
