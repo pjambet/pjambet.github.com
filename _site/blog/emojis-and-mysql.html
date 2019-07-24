@@ -78,7 +78,7 @@
 <div class="row">
 	<div class="span3 column">
 		<h5><strong>August 28, 2013 <small>. App . <a href="http://pjambet.github.com/blog/emojis-and-mysql#disqus_thread" data-disqus-identifier="/blog/emojis-and-mysql">Comments</a></small></strong>
-		<br/><small>Tags:  <a href="/tags/emojis" title="View posts tagged with &quot;emojis&quot;"><u>emojis</u></a>     <a href="/tags/mysql" title="View posts tagged with &quot;mysql&quot;"><u>mysql</u></a>     <a href="/tags/db" title="View posts tagged with &quot;db&quot;"><u>db</u></a>    </small><br/><br/>
+		<br/><small>Tags:  <a href="/tags/emojis" title="View posts tagged with &quot;emojis&quot;"><u>emojis</u></a>    <a href="/tags/mysql" title="View posts tagged with &quot;mysql&quot;"><u>mysql</u></a>    <a href="/tags/db" title="View posts tagged with &quot;db&quot;"><u>db</u></a>    </small><br/><br/>
 		<a href="https://twitter.com/share" class="twitter-share-button" data-via="pierre_jambet">Tweet</a> <g:plusone size="medium"></g:plusone></h5>
 	</div>
 	<div class="span6 column">
@@ -103,10 +103,10 @@ better, Postgres !)</strong></p>
 so I thought I would sum up my findings here.</p>
 
 <p>If you&#39;ve seen stuff like</p>
-<div class="highlight"><pre><code class="text language-text" data-lang="text">Mysql::Error: Specified key was too long; max key length is 767 bytes
+<div class="highlight"><pre><code class="language-" data-lang="">Mysql::Error: Specified key was too long; max key length is 767 bytes
 </code></pre></div>
 <p>or</p>
-<div class="highlight"><pre><code class="text language-text" data-lang="text">Mysql2::Error: Incorrect string value: &#39;\xF0\x9F\x8F\xA0&#39; for column &#39;body&#39; at row 1 ...
+<div class="highlight"><pre><code class="language-" data-lang="">Mysql2::Error: Incorrect string value: '\xF0\x9F\x8F\xA0' for column 'body' at row 1 ...
 </code></pre></div>
 <p>then maybe this article can help you.</p>
 
@@ -132,20 +132,20 @@ everything you need.</p>
 <h3>Django example :</h3>
 
 <p>in your new project :</p>
-<div class="highlight"><pre><code class="text language-text" data-lang="text">$&gt; django-admin.py startproject test
+<div class="highlight"><pre><code class="language-" data-lang="">$&gt; django-admin.py startproject test
 </code></pre></div>
 <p>Simply add the <code>charset</code> option in the <code>DATABASES</code> setting :</p>
 
 <p><em>settings.py</em></p>
-<div class="highlight"><pre><code class="text language-text" data-lang="text">DATABASES = {
-    &#39;default&#39;: {
-        &#39;ENGINE&#39;: &#39;django.db.backends.mysql&#39;,
-        &#39;NAME&#39;: &#39;test&#39;,
-        &#39;USER&#39;: &#39;test_user&#39;
-        &#39;OPTIONS&#39;: {&#39;charset&#39;: &#39;utf8mb4&#39;},
-        &#39;PASSWORD&#39;: &#39;&#39;,
-        &#39;HOST&#39;: &#39;&#39;,
-        &#39;PORT&#39;: &#39;&#39;,
+<div class="highlight"><pre><code class="language-" data-lang="">DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'test',
+        'USER': 'test_user'
+        'OPTIONS': {'charset': 'utf8mb4'},
+        'PASSWORD': '',
+        'HOST': '',
+        'PORT': '',
     }
 }
 </code></pre></div>
@@ -160,11 +160,11 @@ libraries, such as celery try to index some column with a 255 max length.</p>
 
 <p>So if you have <code>djcelery</code> in your <code>INSTALLED_APPS</code>, running your migrations
 (<code>python manage.py migrate</code>) will fail with a nice :</p>
-<div class="highlight"><pre><code class="text language-text" data-lang="text">django.db.utils.DatabaseError: (1071, &#39;Specified key was too long; max key length is 767 bytes&#39;)
+<div class="highlight"><pre><code class="language-" data-lang="">django.db.utils.DatabaseError: (1071, 'Specified key was too long; max key length is 767 bytes')
 </code></pre></div>
 <p>The only solution I found so far is to only run migrations on an app per app
 basis.</p>
-<div class="highlight"><pre><code class="text language-text" data-lang="text">python manage.py migrate myapp
+<div class="highlight"><pre><code class="language-" data-lang="">python manage.py migrate myapp
 python manage.py migrate anotherapp
 </code></pre></div>
 <p>and for the app that fails, such as <code>djcelery</code>, first run</p>
@@ -172,7 +172,7 @@ python manage.py migrate anotherapp
 <p><code>python manage.py sqall djcelery</code></p>
 
 <p>Which should give you an output similar to :</p>
-<div class="highlight"><pre><code class="text language-text" data-lang="text">BEGIN;
+<div class="highlight"><pre><code class="language-" data-lang="">BEGIN;
 CREATE TABLE `celery_taskmeta` (
     `id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY,
     `task_id` varchar(255) NOT NULL UNIQUE,
@@ -196,7 +196,7 @@ all the data that is gonna be inserted in those tables is controlled by celery
 itself, and there should not be any emojis are other 4 bytes wide characters.</p>
 
 <p>Then your new file should look like :</p>
-<div class="highlight"><pre><code class="text language-text" data-lang="text">BEGIN;
+<div class="highlight"><pre><code class="language-" data-lang="">BEGIN;
 CREATE TABLE `celery_taskmeta` (
     `id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY,
     `task_id` varchar(255) NOT NULL UNIQUE,
@@ -223,16 +223,16 @@ recent</a>, and is only supported since
 rails 4.0.0</p>
 
 <p>in your new rails project :</p>
-<div class="highlight"><pre><code class="text language-text" data-lang="text">$&gt; rails new test -d mysql
+<div class="highlight"><pre><code class="language-" data-lang="">$&gt; rails new test -d mysql
 </code></pre></div>
 <p><em>database.yml</em></p>
-<div class="highlight"><pre><code class="text language-text" data-lang="text"># MySQL.  Versions 4.1 and 5.0 are recommended.
+<div class="highlight"><pre><code class="language-" data-lang=""># MySQL.  Versions 4.1 and 5.0 are recommended.
 #
 # Install the MYSQL driver
 #   gem install mysql2
 #
 # Ensure the MySQL gem is defined in your Gemfile
-#   gem &#39;mysql2&#39;
+#   gem 'mysql2'
 #
 # And be sure to use new-style password hashing:
 #   http://dev.mysql.com/doc/refman/5.0/en/old-client.html
@@ -245,8 +245,8 @@ development:
   password:
   socket: /tmp/mysql.sock
 
-# Warning: The database defined as &quot;test&quot; will be erased and
-# re-generated from your development database when you run &quot;rake&quot;.
+# Warning: The database defined as "test" will be erased and
+# re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test:
   adapter: mysql2
@@ -335,7 +335,7 @@ really awesome stuff !</p>
 	<footer class="footer">
   <div class="container">
 	<p class="pull-right"> <a href="/blog/beech-is-here" title="Previous Post: Beech is finally here">&laquo; Previous Blog Post</a> 	  |  <a href="#">Back to top</a>  |   	<a href="/blog/atomic-operations-in-sql" title="Next Post: Atomic increment/decrement operations in SQL (and fun with locks)">Next Blog Post &raquo; </a> 	 </p>
-	<p>Page last generated on July  3, 2017</p>
+	<p>Page last generated on July 23, 2019</p>
 	<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
   </div>
 </footer>

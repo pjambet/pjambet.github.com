@@ -110,7 +110,7 @@ implementation with the previous one to highlight the benefits.</p>
 
 <p>SQL supports atomic increment and decrement operations on numeric columns. The &quot;trick&quot; is to use an update query based
 on the following pattern:</p>
-<div class="highlight"><pre><code class="text language-text" data-lang="text">-- This assumes the existence of a table defined as:
+<div class="highlight"><pre><code class="language-" data-lang="">-- This assumes the existence of a table defined as:
 -- CREATE TABLE test(id SERIAL PRIMARY KEY, x INTEGER);
 UPDATE test set x = x - 1 where id = 1;
 </code></pre></div>
@@ -133,25 +133,25 @@ multiple transactions are running with the isolation level set as <code>READ COM
 <h3>Example</h3>
 
 <p>Let&#39;s insert two rows in the <code>test</code> table.</p>
-<div class="highlight"><pre><code class="text language-text" data-lang="text">insert into test values (1, 0);
+<div class="highlight"><pre><code class="language-" data-lang="">insert into test values (1, 0);
 insert into test values (2, 0);
 </code></pre></div>
 <p>We can trigger a deadlock with two <code>psql</code> sessions:</p>
-<div class="highlight"><pre><code class="text language-text" data-lang="text">$1&gt; psql
+<div class="highlight"><pre><code class="language-" data-lang="">$1&gt; psql
 psql1&gt; BEGIN;
 psql1&gt; UPDATE test SET x = x + 1 WHERE id = 1; -- A lock is acquired on the row with id 1, no other transactions can update it
-</code></pre></div><div class="highlight"><pre><code class="text language-text" data-lang="text">$2&gt; psql
+</code></pre></div><div class="highlight"><pre><code class="language-" data-lang="">$2&gt; psql
 psql2&gt; BEGIN;
 psql2&gt; UPDATE test SET x = x + 1 WHERE id = 2; -- A lock is acquired on the row with id 2, no other transactions can update it
-</code></pre></div><div class="highlight"><pre><code class="text language-text" data-lang="text">psql1&gt; UPDATE test SET x = x + 1 WHERE id = 2; -- The second session hasn&#39;t committed yet, this operation is now waiting
-</code></pre></div><div class="highlight"><pre><code class="text language-text" data-lang="text">psql2&gt; UPDATE test SET x = x + 1 WHERE id = 1; -- The first session hasn&#39;t committed yet, this operation is now waiting
+</code></pre></div><div class="highlight"><pre><code class="language-" data-lang="">psql1&gt; UPDATE test SET x = x + 1 WHERE id = 2; -- The second session hasn't committed yet, this operation is now waiting
+</code></pre></div><div class="highlight"><pre><code class="language-" data-lang="">psql2&gt; UPDATE test SET x = x + 1 WHERE id = 1; -- The first session hasn't committed yet, this operation is now waiting
 </code></pre></div>
 <p>DEADLOCK! Each session is waiting for the other one to commit or rollback:</p>
-<div class="highlight"><pre><code class="text language-text" data-lang="text">ERROR:  deadlock detected
+<div class="highlight"><pre><code class="language-" data-lang="">ERROR:  deadlock detected
 DETAIL:  Process 14803 waits for ShareLock on transaction 43356; blocked by process 14431.
 Process 14431 waits for ShareLock on transaction 43357; blocked by process 14803.
 HINT:  See server log for query details.
-CONTEXT:  while updating tuple (0,1) in relation &quot;test&quot;
+CONTEXT:  while updating tuple (0,1) in relation "test"
 </code></pre></div>
 <p>PostgreSQL automatically detects the situation after a few seconds and will automatically roll back one of the
 transactions, allowing the other one to commit successfully.</p>
@@ -169,15 +169,15 @@ case, if both transactions had sorted the rows by ascending id for instance, the
 COMMITTED</code> isolation level is the determinism of the condition used in the <code>WHERE</code> clause of the <code>UPDATE</code> query.</p>
 
 <p>Let&#39;s look at what can happen with a less trivial query:</p>
-<div class="highlight"><pre><code class="text language-text" data-lang="text">$1&gt; psql
+<div class="highlight"><pre><code class="language-" data-lang="">$1&gt; psql
 psql1&gt; BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
 psql1&gt; UPDATE test SET x = x + 1 WHERE id = 2; -- A lock is acquired on the row with id 2, no other transaction can update it
-</code></pre></div><div class="highlight"><pre><code class="text language-text" data-lang="text">$2&gt; psql
+</code></pre></div><div class="highlight"><pre><code class="language-" data-lang="">$2&gt; psql
 psql2&gt; BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
 psql2&gt; UPDATE test set x = x + 1 WHERE x % 2 = 0;
--- A lock is acquired on all rows with an even x value, since there&#39;s a lock on the row with id 2, this query waits for
+-- A lock is acquired on all rows with an even x value, since there's a lock on the row with id 2, this query waits for
 -- the first transaction to commit or rollback
-</code></pre></div><div class="highlight"><pre><code class="text language-text" data-lang="text">psql1&gt; UPDATE test set x = x + 1 WHERE x % 2 = 0;
+</code></pre></div><div class="highlight"><pre><code class="language-" data-lang="">psql1&gt; UPDATE test set x = x + 1 WHERE x % 2 = 0;
 </code></pre></div>
 <p>This creates another deadlock situation.</p>
 
@@ -201,7 +201,7 @@ mechanism to ensure that the value won&#39;t change after we read it and before 
 
 <p>It is common for e-commerce companies to keep track of inventories for each SKU
 sold on the platform, a simple inventory table could be defined as:</p>
-<div class="highlight"><pre><code class="sql language-sql" data-lang="sql"><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">inventories</span><span class="p">(</span><span class="n">sku</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span> <span class="n">quantity</span> <span class="nb">INTEGER</span><span class="p">);</span>
+<div class="highlight"><pre><code class="language-sql" data-lang="sql"><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">inventories</span><span class="p">(</span><span class="n">sku</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span> <span class="n">quantity</span> <span class="n">INTEGER</span><span class="p">);</span>
 </code></pre></div>
 <p>A simplified version of our inventory system works as follows:</p>
 
@@ -298,7 +298,7 @@ retries for serialization errors.</li>
 	<footer class="footer">
   <div class="container">
 	<p class="pull-right"> <a href="/blog/emojis-and-mysql" title="Previous Post: Emojis and MySQL">&laquo; Previous Blog Post</a> 	  |  <a href="#">Back to top</a>  |   </p>
-	<p>Page last generated on July  3, 2017</p>
+	<p>Page last generated on July 23, 2019</p>
 	<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
   </div>
 </footer>
