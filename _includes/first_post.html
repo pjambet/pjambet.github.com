@@ -12,7 +12,7 @@
 				<div class="span7 columns">
 					<h1><a href="{{ first_post.url }}">{{ first_post.title }}</a></h1>
 					<i>{{ first_post.summary }}</i>
-					<p><h5><small>Category: {{ first_post.category }} . Tags: {% for tag in first_post.tags %} <a href="/tags/{{ tag }}" rel="tooltip" title="View posts tagged with &quot;{{ tag }}&quot;">{{ tag }}</a>  {% if forloop.last != true %} {% endif %} {% endfor %} . <a href="http://pjambet.github.com{{first_post.url }}#disqus_thread" data-disqus-identifier="{{ first_post.url }}"></a></small></h5></p>
+					<p><h5><small>Category: {{ first_post.category }} . Tags: {% for tag in first_post.tags %} <a href="/tags/{{ tag }}" rel="tooltip" title="View posts tagged with &quot;{{ tag }}&quot;">{{ tag }}</a>  {% if forloop.last != true %} {% endif %} {% endfor %} . <a href="https://pjambet.github.com{{first_post.url }}#disqus_thread" data-disqus-identifier="{{ first_post.url }}"></a></small></h5></p>
 				</div>
 			</div>
 		</div>
