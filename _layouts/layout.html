@@ -15,7 +15,7 @@
 	<link href="/css/bootstrap.css" rel="stylesheet">
     <link href="/css/bootstrap-responsive.css" rel="stylesheet">
     <link href="/css/docs.css" rel="stylesheet">
-  <link href="/css/3rd_party/pygments/default.scss" rel="stylesheet">
+  <link href="/css/3rd_party/pygments/default.css" rel="stylesheet">
 	<link href="/js/google-code-prettify/prettify.css" rel="stylesheet">
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
@@ -53,7 +53,7 @@
     <!-- Le javascript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
+    <script type="text/javascript" src="https://platform.twitter.com/widgets.js"></script>
     <script src="/js/jquery.js"></script>
     <script src="/js/google-code-prettify/prettify.js"></script>
 	<script src="/js/bootstrap.js"></script>
@@ -69,24 +69,19 @@
 		(function () {
 			var s = document.createElement('script'); s.async = true;
 			s.type = 'text/javascript';
-			s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
+			s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
 			(document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
 		}());
 	</script>
 
-	<!-- Google Analytics -->
-	<script type="text/javascript">
-
-	  var _gaq = _gaq || [];
-	  _gaq.push(['_setAccount', 'UA-29830549-1']);
-	  _gaq.push(['_trackPageview']);
-
-	  (function() {
-		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-		var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-	  })();
-
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-35058499-1"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag(){dataLayer.push(arguments);}
+		gtag('js', new Date());
+	
+		gtag('config', 'UA-35058499-1');
 	</script>
   </body>
 </html>
