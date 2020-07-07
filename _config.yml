@@ -1,2 +1,1 @@
-auto: true
-permalink: /blog/:title
+theme: jekyll-theme-cayman
